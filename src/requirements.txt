@@ -1,0 +1,7 @@
+ultralytics
+opencv-python
+matplotlib
+notebook
+jupyter
+numpy
+pandas

@@ -1,0 +1,19 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── objetos
+#         └── images
+
+
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+path: ./  # dataset root dir
+train: datasets/objetos/train/images  # train images (relative to 'path')
+val: datasets/objetos/valid/images  # val images (relative to 'path')
+test: datasets/objetos/test/images  # test images (relative to 'path')
+
+# Classes
+names:
+  0: arroz
+  1: feijao
+  2: macarrao
