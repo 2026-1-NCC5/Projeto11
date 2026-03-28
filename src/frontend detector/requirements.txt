@@ -5,3 +5,7 @@ notebook
 jupyter
 numpy
 pandas
+fastapi
+uvicorn
+python-multipart
+requests
