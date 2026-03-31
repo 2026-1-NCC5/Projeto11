@@ -21,9 +21,9 @@ app.add_middleware(
 # Configuração de Caminhos
 BASE_DIR = Path(__file__).resolve().parent
 MODEL_PATH = BASE_DIR / "runs" / "detect" / "treino_alimentos" / "weights" / "best.pt"
-EVIDENCIAS_DIR = BASE_DIR / "evidencias" # Pasta para salvar os frames validados
+EVIDENCIAS_DIR = BASE_DIR / "evidencias" 
 
-# Cria a pasta de evidências se não existir
+# Cria a pasta de evidências 
 os.makedirs(EVIDENCIAS_DIR, exist_ok=True)
 
 CONFIDENCE_THRESHOLD = 0.60
@@ -31,7 +31,7 @@ CONFIDENCE_THRESHOLD = 0.60
 if not MODEL_PATH.exists():
     raise FileNotFoundError(f"Modelo não encontrado em: {MODEL_PATH}")
 
-# Carrega o seu modelo treinado
+# Carrega o modelo treinado
 model = YOLO(str(MODEL_PATH))
 
 @app.get("/")
@@ -68,7 +68,7 @@ async def registrar_contagem(
                 "evidencia_path": None
             }
 
-        # Pega a melhor detecção (maior confiança)
+        # Pega a melhor detecção 
         best_box = max(results[0].boxes, key=lambda b: float(b.conf[0].item()))
         cls_id = int(best_box.cls[0].item())
         conf = float(best_box.conf[0].item())
@@ -84,7 +84,7 @@ async def registrar_contagem(
         # Salva a evidência na pasta
         cv2.imwrite(str(caminho_evidencia), frame_anotado)
 
-        # Retorna o payload completo exigido na documentação (Item 3 - Requisitos Funcionais)
+        # Retorna o payload completo exigido na documentação
         return {
             "status": "sucesso",
             "equipe": equipe,

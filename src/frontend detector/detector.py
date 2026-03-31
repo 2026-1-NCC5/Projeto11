@@ -3,9 +3,9 @@ import requests
 import threading
 from ultralytics import YOLO
 
-# --- CONFIGURAÇÕES DA API ---
+# CONFIGURAÇÕES DA API
 API_URL = "http://localhost:8000/registrar_contagem"
-NOME_EQUIPE = "Equipe Alpha" # Coloque o nome real da equipe arrecadadora aqui
+NOME_EQUIPE = "Equipe Alpha" 
 
 # Carrega o modelo treinado
 modelo = YOLO('runs/detect/treino_alimentos/weights/best.pt') 
@@ -13,13 +13,13 @@ modelo = YOLO('runs/detect/treino_alimentos/weights/best.pt')
 camera = cv2.VideoCapture(0)
 print("Iniciando Contagem Inteligente (LE)... Pressione 'q' para sair.")
 
-# Classes alinhadas (mantendo o Macarrão separado, conforme sua preferência)
-nomes_classes = {0: "Arroz", 1: "Feijao", 2: "Acucar", 3: "Macarrao"}
-contagem_total = {"Arroz": 0, "Feijao": 0, "Acucar": 0, "Macarrao": 0}
+# Classes alinhadas 
+nomes_classes = {0: "Arroz", 1: "Feijao", 2: "Acucar"}
+contagem_total = {"Arroz": 0, "Feijao": 0, "Acucar": 0}
 ids_contados = set()
 linha_passagem_y = 300 
 
-# --- FUNÇÃO PARA ENVIAR DADOS EM SEGUNDO PLANO ---
+# FUNÇÃO PARA ENVIAR DADOS EM SEGUNDO PLANO
 def enviar_para_api(frame_cortado, equipe):
     try:
         # Codifica a imagem da câmera em formato JPG na memória
@@ -65,7 +65,7 @@ while True:
                 
                 cv2.circle(frame_anotado, (centro_x, centro_y), 5, (0, 0, 255), -1)
                 
-                # --- LÓGICA DE CONTAGEM E ENVIO ---
+                # LÓGICA DE CONTAGEM E ENVIO
                 if centro_y > linha_passagem_y and obj_id not in ids_contados:
                     nome_categoria = nomes_classes.get(cls_id)
                     
@@ -81,7 +81,7 @@ while True:
                         )
                         thread_envio.start()
 
-    # --- DESENHO DA INTERFACE NA TELA ---
+    # DESENHO DA INTERFACE NA TELA
     cv2.line(frame_anotado, (0, linha_passagem_y), (frame_anotado.shape[1], linha_passagem_y), (0, 255, 0), 2)
     cv2.putText(frame_anotado, "LINHA DE CONTAGEM", (10, linha_passagem_y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 

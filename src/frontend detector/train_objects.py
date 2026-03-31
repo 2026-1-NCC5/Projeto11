@@ -6,8 +6,9 @@ print("Iniciando o treinamento...")
 
 results = model.train(
     data='data.yaml',         
-    epochs=50,                
-    imgsz=640,                
+    epochs=80,                
+    imgsz=640,
+    batch=8,           
     name='treino_alimentos'   
 )
 
