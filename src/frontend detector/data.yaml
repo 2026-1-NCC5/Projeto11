@@ -1,9 +1,12 @@
-path: dataset  
-train: train/images  
-val: valid/images 
+path: dataset
+train: train/images
+val: valid/images
 
 # Classes
 names:
   0: arroz
   1: feijao
   2: acucar
+  3: macarrao
+  4: oleo
+  5: fuba

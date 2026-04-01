@@ -12,6 +12,10 @@ CLASS_MAP = {
     "arroz": 0,
     "feijao": 1,
     "acucar": 2,
+    "macarrao":3,
+    "oleo":4,
+    "fuba":5,
+
 }
 
 VALID_EXTENSIONS = (".jpg", ".jpeg", ".png")
