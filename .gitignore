@@ -353,3 +353,15 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+# Claude Code / Agent Skills (configuração local, não versionar)
+.mcp.json
+.agents/
+.claude/
+skills-lock.json
+
+# Documentos internos de planejamento (não versionar)
+CLAUDE.md
+DECISIONS.md
+PLANO_EXECUCAO_LE_v2.md
+PLANO_EXECUCAO_LE_v2.1.md
