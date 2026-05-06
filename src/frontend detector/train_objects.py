@@ -9,7 +9,7 @@ results = model.train(
     epochs=80,                
     imgsz=640,
     batch=8,           
-    name='treino_alimentos'   
+    name='treino_alimentos_final'   
 )
 
 print("Treinamento concluído!")
