@@ -42,9 +42,9 @@ except Exception as e:
     exit()
 
 print("Carregando modelo de IA... Aguarde.")
-modelo = YOLO('runs/detect/treino_alimentos/weights/best.pt') 
+modelo = YOLO('runs/detect/treino_alimentos_final/weights/best.pt') 
 
-camera = cv2.VideoCapture(0)
+camera = cv2.VideoCapture(1)
 print("\nIniciando Contagem Inteligente (LE)... Pressione 'q' para sair.")
 
 nomes_classes = {0: "Arroz", 1: "Feijao", 2: "Acucar", 3: "Macarrao", 4: "Oleo", 5: "Fuba"}

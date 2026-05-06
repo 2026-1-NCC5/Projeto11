@@ -34,7 +34,7 @@ app.add_middleware(
 )
 
 BASE_DIR = Path(__file__).resolve().parent
-MODEL_PATH = BASE_DIR / "runs" / "detect" / "treino_alimentos" / "weights" / "best.pt"
+MODEL_PATH = BASE_DIR / "runs" / "detect" / "treino_alimentos_final" / "weights" / "best.pt"
 EVIDENCIAS_DIR = BASE_DIR / "evidencias" 
 os.makedirs(EVIDENCIAS_DIR, exist_ok=True)
 
