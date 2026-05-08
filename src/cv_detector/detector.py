@@ -1,7 +1,22 @@
+
 import cv2
 import requests
 import threading
 from ultralytics import YOLO
+import numpy as np
+import math
+
+# --- BLOCO ADICIONADO: CALIBRAÇÃO DE TAMANHO (HOMOGRAFIA) ---
+pontos_imagem_pixel = np.array([[47, 31], [555, 32], [558, 443], [60, 432]], dtype="float32")
+pontos_real_cm = np.array([
+    [0, 0],   
+    [50, 0],  
+    [50, 50], 
+    [0, 50]   
+], dtype="float32")
+
+matriz_medidas, _ = cv2.findHomography(pontos_imagem_pixel, pontos_real_cm)
+# -----------------------------------------------------------
 
 API_URL = "http://localhost:8000/registrar_contagem"
 
@@ -48,16 +63,14 @@ camera = cv2.VideoCapture(0)
 print("\nIniciando Contagem Inteligente (LE)... Pressione 'q' para sair.")
 
 nomes_classes = {0: "Arroz", 1: "Feijao", 2: "Acucar", 3: "Macarrao", 4: "Oleo", 5: "Fuba"}
-contagem_total = {nome: 0 for nome in nomes_classes.values()}
+contagem_total = {} # Começa vazio para podermos adicionar os pesos dinamicamente
 ids_contados = set()
 linha_passagem_y = 300 
 
-# Recebe id e nome da equipe
 def enviar_para_api(frame_cortado, id_equipe, nome_equipe):
     try:
         _, img_encoded = cv2.imencode('.jpg', frame_cortado)
         files = {'image': ('evidencia.jpg', img_encoded.tobytes(), 'image/jpeg')}
-        # Envia as duas informações para o Form da FastAPI
         data = {'equipe_id': id_equipe, 'equipe_nome': nome_equipe} 
         
         resposta = requests.post(API_URL, data=data, files=files)
@@ -68,7 +81,6 @@ def enviar_para_api(frame_cortado, id_equipe, nome_equipe):
             print(f"⚠️ [API] Erro: {resposta.status_code}")
     except Exception as e:
         print(f"❌ [API] Falha ao conectar: {e}")
-
 
 while True:
     sucesso, frame = camera.read()
@@ -91,15 +103,38 @@ while True:
                 centro_x = int((x1 + x2) / 2)
                 centro_y = int((y1 + y2) / 2)
                 
+                # --- CÁLCULO DE TAMANHO E PESO ---
+                base_esq_pixel = np.array([[[x1, y2]]], dtype="float32")
+                base_dir_pixel = np.array([[[x2, y2]]], dtype="float32")
+
+                base_esq_cm = cv2.perspectiveTransform(base_esq_pixel, matriz_medidas)[0][0]
+                base_dir_cm = cv2.perspectiveTransform(base_dir_pixel, matriz_medidas)[0][0]
+
+                largura_cm = math.sqrt((base_dir_cm[0] - base_esq_cm[0])**2 + (base_dir_cm[1] - base_esq_cm[1])**2)
+                
+                nome_base = nomes_classes.get(cls_id)
+                
+                if nome_base:
+                    # Regra do Peso: se a largura for maior que 20cm, é 5kg; se não, é 1kg.
+                    if largura_cm > 20.0:
+                        nome_com_peso = f"{nome_base} 5kg"
+                    else:
+                        nome_com_peso = f"{nome_base} 1kg"
+                    
+                    # Escreve os centímetros na tela do vídeo (em cima do pacote)
+                    cv2.putText(frame_anotado, f"{largura_cm:.1f}cm", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
+                # ---------------------------------------------------
+
                 cv2.circle(frame_anotado, (centro_x, centro_y), 5, (0, 0, 255), -1)
                 
                 if centro_y > linha_passagem_y and obj_id not in ids_contados:
-                    nome_categoria = nomes_classes.get(cls_id)
-                    
-                    if nome_categoria:
-                        contagem_total[nome_categoria] += 1
+                    if nome_base:
+                        if nome_com_peso not in contagem_total:
+                            contagem_total[nome_com_peso] = 0
+                            
+                        contagem_total[nome_com_peso] += 1
                         ids_contados.add(obj_id)
-                        print(f"Item Contado na tela! {nome_categoria} (ID: {obj_id}) - {NOME_EQUIPE}")
+                        print(f"Item Contado na tela! {nome_com_peso} ({largura_cm:.1f}cm) - ID: {obj_id}")
                         
                         thread_envio = threading.Thread(
                             target=enviar_para_api, 

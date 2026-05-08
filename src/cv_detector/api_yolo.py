@@ -1,5 +1,6 @@
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel # --- ADICIONADO: Para receber o nome da equipe do Front-end ---
 from ultralytics import YOLO
 import tempfile
 import shutil
@@ -45,6 +46,10 @@ if not MODEL_PATH.exists():
 
 model = YOLO(str(MODEL_PATH))
 
+# --- ADICIONADO: Estrutura para receber o nome da equipe do Front-end ---
+class NovaEquipe(BaseModel):
+    nome: str
+
 @app.get("/")
 def root():
     return {"status": "ok", "message": "API LE - Edge Gateway Rodando!"}
@@ -52,10 +57,22 @@ def root():
 @app.get("/equipes")
 def listar_equipes():
     try:
+        # Busca ID e NOME. (Se lá no Supabase a coluna for 'name', mude aqui!)
         resposta = supabase.table("equipes").select("id, nome").order("id").execute()
         return {"status": "sucesso", "equipes": resposta.data}
     except Exception as e:
         return {"status": "erro", "mensagem": str(e)}
+
+# --- ADICIONADO: Rota para o Front-end cadastrar novas equipes ---
+@app.post("/cadastrar_equipe")
+def cadastrar_equipe(equipe: NovaEquipe):
+    try:
+        # Insere o nome na tabela. O ID o Supabase cria sozinho.
+        resposta = supabase.table("equipes").insert({"nome": equipe.nome}).execute()
+        return {"status": "sucesso", "mensagem": "Equipe cadastrada!", "dados": resposta.data}
+    except Exception as e:
+        return {"status": "erro", "mensagem": str(e)}
+# ------------------------------------------------------------------
 
 # Recebe o ID e o Nome
 @app.post("/registrar_contagem")
