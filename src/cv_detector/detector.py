@@ -1,4 +1,3 @@
-
 import cv2
 import requests
 import threading
@@ -63,7 +62,7 @@ camera = cv2.VideoCapture(0)
 print("\nIniciando Contagem Inteligente (LE)... Pressione 'q' para sair.")
 
 nomes_classes = {0: "Arroz", 1: "Feijao", 2: "Acucar", 3: "Macarrao", 4: "Oleo", 5: "Fuba"}
-contagem_total = {} # Começa vazio para podermos adicionar os pesos dinamicamente
+contagem_total = {} 
 ids_contados = set()
 linha_passagem_y = 300 
 
@@ -103,7 +102,7 @@ while True:
                 centro_x = int((x1 + x2) / 2)
                 centro_y = int((y1 + y2) / 2)
                 
-                # --- CÁLCULO DE TAMANHO E PESO ---
+                # --- CÁLCULO DE TAMANHO REAL ---
                 base_esq_pixel = np.array([[[x1, y2]]], dtype="float32")
                 base_dir_pixel = np.array([[[x2, y2]]], dtype="float32")
 
@@ -115,15 +114,14 @@ while True:
                 nome_base = nomes_classes.get(cls_id)
                 
                 if nome_base:
-                    # Regra do Peso: se a largura for maior que 20cm, é 5kg; se não, é 1kg.
                     if largura_cm > 20.0:
                         nome_com_peso = f"{nome_base} 5kg"
                     else:
                         nome_com_peso = f"{nome_base} 1kg"
                     
-                    # Escreve os centímetros na tela do vídeo (em cima do pacote)
-                    cv2.putText(frame_anotado, f"{largura_cm:.1f}cm", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
-                # ---------------------------------------------------
+                    # Escreve os centímetros de forma discreta em cima do pacote
+                    cv2.putText(frame_anotado, f"{largura_cm:.1f}cm", (x1, y1 - 10), 
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
 
                 cv2.circle(frame_anotado, (centro_x, centro_y), 5, (0, 0, 255), -1)
                 
@@ -134,7 +132,7 @@ while True:
                             
                         contagem_total[nome_com_peso] += 1
                         ids_contados.add(obj_id)
-                        print(f"Item Contado na tela! {nome_com_peso} ({largura_cm:.1f}cm) - ID: {obj_id}")
+                        print(f"Item Contado! {nome_com_peso} ({largura_cm:.1f}cm)")
                         
                         thread_envio = threading.Thread(
                             target=enviar_para_api, 
@@ -142,17 +140,11 @@ while True:
                         )
                         thread_envio.start()
 
+    # --- VISUAL DA CÂMERA LIMPO (SEM FAIXA PRETA) ---
+    # Mantém apenas a linha verde de referência
     cv2.line(frame_anotado, (0, linha_passagem_y), (frame_anotado.shape[1], linha_passagem_y), (0, 255, 0), 2)
-    cv2.putText(frame_anotado, "LINHA DE CONTAGEM", (10, linha_passagem_y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-    cv2.rectangle(frame_anotado, (10, 10), (300, 210), (0, 0, 0), -1)
-    
-    cv2.putText(frame_anotado, f"ARRECADACOES ({NOME_EQUIPE}):", (20, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
-    
-    y_pos = 60
-    for categoria, quantidade in contagem_total.items():
-        texto = f"{categoria}: {quantidade}"
-        cv2.putText(frame_anotado, texto, (20, y_pos), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
-        y_pos += 25
+    cv2.putText(frame_anotado, "LIMHA DE CONTAGEM", (10, linha_passagem_y - 10), 
+                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
 
     cv2.imshow("LE - Contagem Inteligente de Alimentos", frame_anotado)
     
