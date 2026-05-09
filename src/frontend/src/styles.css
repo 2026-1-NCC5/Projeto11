@@ -1,0 +1,137 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@500;600;700&display=swap');
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Lideranças Empáticas — Design System
+ * Single source of truth: TOK from shell.jsx
+ * Forest #143824 · Accent #2A8F52 · Cream #F4F1EB
+ * Food: Arroz #E8C97A · Feijão #7A4A2B · Macarrão #D97757
+ */
+
+@theme inline {
+  --font-sans: 'Geist', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Brand */
+  --color-cream: var(--cream);
+  --color-ceramic: var(--ceramic);
+  --color-forest: var(--forest);
+  --color-green: var(--green);
+  --color-brand-accent: var(--brand-accent);
+  --color-sage: var(--sage);
+  --color-hairline: var(--hairline);
+  --color-ink: var(--ink);
+  --color-body: var(--body-color);
+  --color-soft: var(--soft);
+
+  /* Food */
+  --color-arroz: var(--arroz);
+  --color-arroz-light: var(--arroz-light);
+  --color-feijao: var(--feijao);
+  --color-feijao-light: var(--feijao-light);
+  --color-macarrao: var(--macarrao);
+  --color-macarrao-light: var(--macarrao-light);
+
+  /* Semantic */
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
+  --color-gold: var(--gold);
+}
+
+:root {
+  --radius: 12px;
+
+  /* Brand palette (TOK) */
+  --cream: #F4F1EB;
+  --ceramic: #EAE6DD;
+  --forest: #143824;
+  --green: #1F6B3F;
+  --brand-accent: #2A8F52;
+  --sage: #E8EFE9;
+  --hairline: #DDD8CC;
+  --ink: #161B16;
+  --body-color: #2C322C;
+  --soft: #7A8479;
+
+  --arroz: #E8C97A;
+  --arroz-light: #F6EBC9;
+  --feijao: #7A4A2B;
+  --feijao-light: #EFE0CF;
+  --macarrao: #D97757;
+  --macarrao-light: #F6DCCB;
+
+  --success: #2A8F52;
+  --success-bg: #D9F0DF;
+  --warning: #C68A2E;
+  --warning-bg: #F7E6C4;
+  --danger: #B33A3A;
+  --danger-bg: #F5DADA;
+  --gold: #C9A961;
+
+  /* Shadcn semantic — bound to brand */
+  --background: var(--cream);
+  --foreground: var(--ink);
+  --card: #FFFFFF;
+  --card-foreground: var(--ink);
+  --popover: #FFFFFF;
+  --popover-foreground: var(--ink);
+  --primary: var(--brand-accent);
+  --primary-foreground: #FFFFFF;
+  --secondary: var(--sage);
+  --secondary-foreground: var(--forest);
+  --muted: var(--cream);
+  --muted-foreground: var(--soft);
+  --accent: var(--sage);
+  --accent-foreground: var(--forest);
+  --destructive: var(--danger);
+  --destructive-foreground: #FFFFFF;
+  --border: var(--hairline);
+  --input: var(--hairline);
+  --ring: var(--brand-accent);
+}
+
+@layer base {
+  * { border-color: var(--color-border); }
+  html, body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: 'Geist', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .font-mono, .tabular { font-family: 'Geist Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+}
