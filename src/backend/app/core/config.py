@@ -6,7 +6,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _HERE = Path(__file__).resolve()
 BACKEND_DIR = _HERE.parents[2]
-REPO_ROOT = _HERE.parents[4]
+try:
+    REPO_ROOT = _HERE.parents[4]
+except IndexError:
+    REPO_ROOT = BACKEND_DIR
 
 
 class Settings(BaseSettings):

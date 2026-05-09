@@ -23,14 +23,17 @@ _REFRESH_PATH = "/api/v1/auth/refresh"
 
 
 def _set_auth_cookies(response: Response, access: str, refresh: str) -> None:
-    secure = settings.is_production
+    is_prod = settings.is_production
+    samesite = "none" if is_prod else "lax"
+    secure = is_prod
+
     response.set_cookie(
         key=_ACCESS_COOKIE,
         value=access,
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         httponly=True,
         secure=secure,
-        samesite="lax",
+        samesite=samesite,
         path="/",
     )
     response.set_cookie(
@@ -39,7 +42,7 @@ def _set_auth_cookies(response: Response, access: str, refresh: str) -> None:
         max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
         httponly=True,
         secure=secure,
-        samesite="lax",
+        samesite=samesite,
         path=_REFRESH_PATH,
     )
 
