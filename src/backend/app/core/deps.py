@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import decode_token
 from app.db.session import AsyncSessionLocal
+from app.models._enums import UserRole
 from app.models.user import User
 
 
@@ -65,3 +66,15 @@ async def get_current_user(
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
+
+
+async def require_professor(current: CurrentUser) -> User:
+    if current.role != UserRole.professor:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="acesso permitido apenas a professores",
+        )
+    return current
+
+
+CurrentProfessor = Annotated[User, Depends(require_professor)]
