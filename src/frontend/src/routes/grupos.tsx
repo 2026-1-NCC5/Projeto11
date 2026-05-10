@@ -25,9 +25,9 @@ function AlunoView() {
   const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : "";
 
   return (
-    <div className="h-screen overflow-auto">
+    <div className="h-full overflow-auto pb-24 lg:pb-0">
       <PageHeader title="Meu Grupo" subtitle="Você é membro do grupo abaixo" />
-      <div className="p-8 flex flex-col gap-6">
+      <div className="p-4 sm:p-6 lg:p-8 flex flex-col gap-4 lg:gap-6">
         {isLoading && <Card style={{ padding: 32 }}>Carregando…</Card>}
         {!isLoading && !data && (
           <Card style={{ padding: 32 }}>
@@ -36,31 +36,33 @@ function AlunoView() {
         )}
         {data && (
           <>
-            <div className="relative overflow-hidden rounded-[20px] p-9 text-white"
+            <div className="relative overflow-hidden rounded-[20px] p-5 sm:p-7 lg:p-9 text-white"
               style={{ background: "var(--forest)" }}>
-              <svg className="absolute opacity-[.05]" style={{ right: -20, top: -20 }} width="280" height="280" viewBox="0 0 200 200">
+              <svg className="absolute opacity-[.05] hidden sm:block" style={{ right: -20, top: -20 }} width="280" height="280" viewBox="0 0 200 200">
                 <circle cx="100" cy="100" r="96" fill="none" stroke="#fff" strokeWidth="2" />
                 <circle cx="100" cy="100" r="76" fill="none" stroke="#fff" strokeWidth="2" />
               </svg>
-              <div className="flex justify-between items-end relative">
-                <div>
+              <div className="flex flex-col lg:flex-row lg:justify-between lg:items-end gap-4 relative">
+                <div className="min-w-0">
                   <div className="text-[12px] tracking-[1.5px] font-bold text-white/60">SEU GRUPO</div>
-                  <h2 className="my-2 text-[56px] font-semibold leading-none tracking-[-0.03em]">{data.group?.name}</h2>
-                  <div className="text-sm text-white/70">
+                  <h2 className="my-2 text-[32px] sm:text-[40px] lg:text-[56px] font-semibold leading-none tracking-[-0.03em] break-words">{data.group?.name}</h2>
+                  <div className="text-[13px] sm:text-sm text-white/70">
                     Criado em {data.group ? new Date(data.group.created_at).toLocaleDateString("pt-BR") : "—"}
                   </div>
                 </div>
-                <div className="flex gap-3">
-                  <div className="rounded-[14px] px-[22px] py-[14px] text-right" style={{ background: "rgba(255,255,255,0.08)" }}>
+                <div className="flex gap-2 sm:gap-3">
+                  <div className="flex-1 lg:flex-initial rounded-[14px] px-4 sm:px-[22px] py-3 sm:py-[14px]" style={{ background: "rgba(255,255,255,0.08)" }}>
                     <div className="text-[10px] tracking-[1.5px] font-bold text-white/55">ARRECADADO</div>
-                    <Digits size={32} color="#fff">{data.kg}</Digits>
-                    <span className="text-sm ml-[6px] text-white/70">kg</span>
+                    <div className="flex items-baseline gap-1 mt-1">
+                      <Digits size={28} color="#fff">{data.kg}</Digits>
+                      <span className="text-sm text-white/70">kg</span>
+                    </div>
                   </div>
-                  <div className="rounded-[14px] px-[22px] py-[14px] text-right" style={{ background: "var(--brand-accent)" }}>
+                  <div className="flex-1 lg:flex-initial rounded-[14px] px-4 sm:px-[22px] py-3 sm:py-[14px]" style={{ background: "var(--brand-accent)" }}>
                     <div className="text-[10px] tracking-[1.5px] font-bold text-white/70">POSIÇÃO</div>
-                    <div className="flex items-baseline gap-1 justify-end">
+                    <div className="flex items-baseline gap-1 mt-1">
                       <span className="text-sm text-white/70">#</span>
-                      <Digits size={32} color="#fff">{rank || "—"}</Digits>
+                      <Digits size={28} color="#fff">{rank || "—"}</Digits>
                       {medal && <span className="text-base ml-[6px]">{medal}</span>}
                     </div>
                   </div>
@@ -68,31 +70,31 @@ function AlunoView() {
               </div>
             </div>
 
-            <div className="flex justify-between items-baseline">
-              <h3 className="m-0 text-[22px] font-semibold tracking-[-0.015em]">
+            <div className="flex justify-between items-baseline gap-2 flex-wrap">
+              <h3 className="m-0 text-[18px] sm:text-[20px] lg:text-[22px] font-semibold tracking-[-0.015em]">
                 Integrantes <span className="text-soft font-medium">{data.members.length}/5</span>
               </h3>
               {data.members.length >= 4 && <Chip tone="success">✓ Grupo completo</Chip>}
               {data.members.length < 4 && <Chip tone="warning">⚠ Faltam integrantes</Chip>}
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4">
               {data.members.map((m) => (
                 <Card key={m.user_id} style={{
-                  padding: 20,
+                  padding: 18,
                   boxShadow: m.isMe ? "0 0 0 2px var(--brand-accent), 0 1px 1px rgba(0,0,0,0.04)" : undefined,
                 }}>
-                  <div className="flex gap-4 items-center">
-                    <div className="w-[52px] h-[52px] rounded-full flex items-center justify-center text-[17px] font-bold text-white shrink-0"
+                  <div className="flex gap-3 sm:gap-4 items-center">
+                    <div className="w-[48px] h-[48px] sm:w-[52px] sm:h-[52px] rounded-full flex items-center justify-center text-[15px] sm:text-[17px] font-bold text-white shrink-0"
                       style={{ background: m.isMe ? "var(--brand-accent)" : "var(--forest)" }}>
                       {(m.full_name || "?").split(" ").map((s) => s[0]).slice(0, 2).join("").toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-[16px] font-semibold text-ink">{m.full_name}</span>
+                        <span className="text-[15px] sm:text-[16px] font-semibold text-ink truncate">{m.full_name}</span>
                         {m.isMe && <Chip tone="sage">VOCÊ</Chip>}
                         {m.isLeader && <Chip tone="gold">★ líder</Chip>}
                       </div>
-                      <div className="text-[13px] text-soft mt-[2px]">{m.email}</div>
+                      <div className="text-[12px] sm:text-[13px] text-soft mt-[2px] truncate">{m.email}</div>
                       <div className="text-[12px] text-soft mt-1 font-mono">RA · {m.ra}</div>
                     </div>
                   </div>
@@ -110,10 +112,13 @@ function AlunoView() {
 function MiniStat({ label, value, sub, tone }: { label: string; value: string | number; sub: string; tone?: "forest" | "success" }) {
   const dark = tone === "forest";
   return (
-    <Card style={{ padding: 22, background: dark ? "var(--forest)" : "#fff", color: dark ? "#fff" : "var(--body-color)" }}>
+    <Card className="p-4 sm:p-5" style={{ background: dark ? "var(--forest)" : "#fff", color: dark ? "#fff" : "var(--body-color)" }}>
       <div className="text-[11px] tracking-[1.5px] font-bold" style={{ color: dark ? "rgba(255,255,255,0.6)" : "var(--soft)" }}>{label}</div>
       <div className="flex items-baseline gap-2 mt-2">
-        <Digits size={40} color={dark ? "#fff" : "var(--ink)"}>{value}</Digits>
+        <span
+          className="font-mono tabular tracking-tight text-[28px] sm:text-[36px] lg:text-[40px] font-bold leading-none"
+          style={{ color: dark ? "#fff" : "var(--ink)", letterSpacing: "-0.03em" }}
+        >{value}</span>
       </div>
       <div className="text-[12px] mt-1" style={{ color: dark ? "rgba(255,255,255,0.5)" : "var(--soft)" }}>{sub}</div>
     </Card>
@@ -130,12 +135,12 @@ function GroupAdminCard({
   onOpen: (id: string) => void;
 }) {
   return (
-    <Card style={{ padding: 24 }}>
-      <div className="flex justify-between items-start">
-        <div>
-          <h4 className="m-0 text-[20px] font-semibold tracking-[-0.01em]">{g.name}</h4>
+    <Card className="p-5 sm:p-6">
+      <div className="flex justify-between items-start gap-2">
+        <div className="min-w-0">
+          <h4 className="m-0 text-[17px] sm:text-[20px] font-semibold tracking-[-0.01em] truncate">{g.name}</h4>
           <div className="text-[12px] text-soft mt-1">
-            {g.count} integrantes · criado em {new Date(g.created_at).toLocaleDateString("pt-BR")}
+            {g.count} integrantes · {new Date(g.created_at).toLocaleDateString("pt-BR")}
           </div>
         </div>
         {g.status === "ativo" ? <Chip tone="success">● Ativo</Chip> : <Chip tone="warning">⚠ Incompleto</Chip>}
@@ -152,13 +157,13 @@ function GroupAdminCard({
           )}
         </div>
         <div className="ml-auto flex items-baseline gap-1">
-          <Digits size={28}>{g.kg}</Digits>
+          <Digits size={26}>{g.kg}</Digits>
           <span className="text-[13px] text-soft">kg</span>
         </div>
       </div>
-      <div className="flex gap-2 mt-4 pt-4 border-t border-hairline">
+      <div className="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t border-hairline">
         <Btn kind="ghost" sm className="flex-1" onClick={() => onOpen(g.id)}>Ver detalhes</Btn>
-        <Btn kind="outline" sm className="flex-1" onClick={() => onOpen(g.id)}>Gerenciar membros</Btn>
+        <Btn kind="outline" sm className="flex-1" onClick={() => onOpen(g.id)}>Gerenciar</Btn>
       </div>
     </Card>
   );
@@ -171,21 +176,21 @@ function ProfessorView() {
   const [panel, setPanel] = useState<Panel>(null);
 
   return (
-    <div className="h-screen overflow-auto relative">
+    <div className="h-full overflow-auto relative pb-24 lg:pb-0">
       <PageHeader
         title="Gestão de Grupos"
         subtitle="Visão administrativa · Campanha 2026.1"
-        right={<Btn kind="primary" onClick={() => setPanel({ mode: "create" })}>+ Criar Novo Grupo</Btn>}
+        right={<Btn kind="primary" sm onClick={() => setPanel({ mode: "create" })}>+ Novo Grupo</Btn>}
       />
 
-      <div className="p-8 flex flex-col gap-6">
-        <div className="grid grid-cols-3 gap-4">
+      <div className="p-4 sm:p-6 lg:p-8 flex flex-col gap-4 lg:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
           <MiniStat label="TOTAL DE GRUPOS" value={data?.totals.totalGroups ?? 0} sub="ativos na campanha" tone="forest" />
           <MiniStat label="TOTAL DE ALUNOS" value={data?.totals.totalStudents ?? 0} sub="cadastrados em grupos" />
           <MiniStat label="GRUPOS COMPLETOS" value={data?.totals.completeGroups ?? 0} sub="com mín. 4 integrantes" tone="success" />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
           {(data?.groups ?? []).map((g) => (
             <GroupAdminCard key={g.id} g={g} onOpen={(id) => setPanel({ mode: "detail", groupId: id })} />
           ))}
@@ -219,18 +224,27 @@ function PanelShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="absolute right-0 top-0 bottom-0 flex flex-col bg-white border-l border-hairline"
-      style={{ width: 480, boxShadow: "-12px 0 32px rgba(20,56,36,0.08)" }}>
-      <div className="p-7 border-b border-hairline flex justify-between items-start">
-        <div>
-          <div className="text-[11px] tracking-[1.5px] font-bold text-soft mb-[6px]">{eyebrow}</div>
-          <h3 className="m-0 text-[24px] font-semibold tracking-[-0.015em]">{title}</h3>
+    <>
+      <div
+        className="lg:hidden fixed inset-0 z-40 bg-black/50"
+        onClick={onClose}
+        aria-hidden
+      />
+      <div
+        className="fixed lg:absolute z-50 inset-0 lg:inset-auto lg:right-0 lg:top-0 lg:bottom-0 flex flex-col bg-white border-l border-hairline w-full lg:w-[480px]"
+        style={{ boxShadow: "-12px 0 32px rgba(20,56,36,0.08)" }}
+      >
+        <div className="p-5 sm:p-6 lg:p-7 border-b border-hairline flex justify-between items-start gap-3">
+          <div className="min-w-0">
+            <div className="text-[11px] tracking-[1.5px] font-bold text-soft mb-[6px]">{eyebrow}</div>
+            <h3 className="m-0 text-[20px] sm:text-[22px] lg:text-[24px] font-semibold tracking-[-0.015em] truncate">{title}</h3>
+          </div>
+          <button onClick={onClose} className="w-9 h-9 rounded-full border border-hairline bg-white cursor-pointer shrink-0 text-lg">×</button>
         </div>
-        <button onClick={onClose} className="w-8 h-8 rounded-full border border-hairline bg-white cursor-pointer">×</button>
+        <div className="p-5 sm:p-6 lg:p-7 flex-1 overflow-y-auto">{children}</div>
+        <div className="p-4 sm:p-5 border-t border-hairline flex gap-[10px] justify-end" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>{footer}</div>
       </div>
-      <div className="p-7 flex-1 overflow-y-auto">{children}</div>
-      <div className="p-5 border-t border-hairline flex gap-[10px] justify-end">{footer}</div>
-    </div>
+    </>
   );
 }
 

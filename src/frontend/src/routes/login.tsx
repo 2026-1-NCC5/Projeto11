@@ -21,11 +21,11 @@ function LoginScreen() {
   }, [user, loading, navigate]);
 
   return (
-    <div className="flex w-full min-h-screen bg-white font-sans">
-      {/* LEFT */}
+    <div className="flex flex-col lg:flex-row w-full min-h-[100dvh] bg-white font-sans">
+      {/* LEFT — banner compacto no mobile */}
       <div
-        className="relative flex flex-col justify-between p-12 text-white overflow-hidden"
-        style={{ width: "40%", background: "var(--forest)" }}
+        className="relative flex flex-col text-white overflow-hidden p-6 sm:p-10 lg:p-12 lg:justify-between lg:w-[40%]"
+        style={{ background: "var(--forest)" }}
       >
         <svg className="absolute inset-0 opacity-[.06]" width="100%" height="100%">
           <defs>
@@ -40,19 +40,23 @@ function LoginScreen() {
           <span className="w-px h-4 bg-white/30" />
           <span className="text-[12px] tracking-[1.5px] text-white/70">2026</span>
         </div>
-        <div className="flex flex-col items-center gap-6 relative">
-          <BrandLogo size={220} />
-          <div className="text-center max-w-[360px]">
-            <div className="text-[11px] tracking-[2px] font-bold text-white/55 mb-3">SISTEMA DE</div>
-            <h1 className="m-0 text-[38px] font-semibold leading-[1.1] tracking-[-0.02em]">
-              Arrecadação<br />de Alimentos
+        <div className="flex lg:flex-col items-center gap-4 lg:gap-6 relative mt-4 lg:mt-0">
+          <BrandLogo size={64} className="lg:hidden" />
+          <div className="hidden lg:block">
+            <BrandLogo size={220} />
+          </div>
+          <div className="lg:text-center lg:max-w-[360px]">
+            <div className="text-[11px] tracking-[2px] font-bold text-white/55 mb-1 lg:mb-3 hidden sm:block">SISTEMA DE</div>
+            <h1 className="m-0 text-[20px] sm:text-[26px] lg:text-[38px] font-semibold leading-[1.1] tracking-[-0.02em]">
+              <span className="lg:hidden">Arrecadação de Alimentos</span>
+              <span className="hidden lg:inline">Arrecadação<br />de Alimentos</span>
             </h1>
-            <p className="mt-4 text-[15px] text-white/70 leading-[1.5]">
+            <p className="hidden lg:block mt-4 text-[15px] text-white/70 leading-[1.5]">
               Liderança coletiva movida a empatia. Cada quilo registrado é um aluno, um professor, um grupo somando.
             </p>
           </div>
         </div>
-        <div className="flex justify-between items-center text-[12px] text-white/50 relative">
+        <div className="hidden lg:flex justify-between items-center text-[12px] text-white/50 relative">
           <span>Campanha 2026.1</span>
           <span>v3.2</span>
         </div>
@@ -60,25 +64,25 @@ function LoginScreen() {
 
       {/* RIGHT */}
       <div
-        className="flex flex-col justify-center"
-        style={{ width: "60%", background: "var(--cream)", padding: "64px 80px" }}
+        className="flex-1 flex flex-col justify-center px-5 sm:px-10 lg:px-20 py-8 sm:py-12 lg:py-16"
+        style={{ background: "var(--cream)" }}
       >
         <div className="max-w-[480px] w-full mx-auto">
-          <div className="mb-8">
+          <div className="mb-6 sm:mb-8">
             <div className="text-[12px] tracking-[1.5px] font-bold text-soft mb-2">BEM-VINDO DE VOLTA</div>
-            <h2 className="m-0 text-[40px] font-semibold leading-[1.05] tracking-[-0.025em] text-ink">
+            <h2 className="m-0 text-[26px] sm:text-[32px] lg:text-[40px] font-semibold leading-[1.05] tracking-[-0.025em] text-ink">
               {tab === "login" ? "Entrar na sua conta" : "Criar sua conta"}
             </h2>
           </div>
 
           <div
-            className="inline-flex p-1 rounded-full mb-8 bg-white border border-hairline"
+            className="inline-flex p-1 rounded-full mb-6 sm:mb-8 bg-white border border-hairline"
           >
             {(["login", "cadastro"] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
-                className="px-[22px] py-2 text-[13px] font-semibold rounded-full transition-colors"
+                className="px-[18px] sm:px-[22px] py-2 text-[13px] font-semibold rounded-full transition-colors"
                 style={{
                   background: tab === t ? "var(--forest)" : "transparent",
                   color: tab === t ? "#fff" : "var(--body-color)",
@@ -304,7 +308,7 @@ function CadastroForm({ onDone }: { onDone: () => void }) {
   }
 
   return (
-    <form onSubmit={submit} className="max-h-[540px] overflow-y-auto pr-1">
+    <form onSubmit={submit} className="lg:max-h-[540px] lg:overflow-y-auto lg:pr-1">
       <Field label="Nome completo">
         <Input value={f.full_name} onChange={(v) => set("full_name", v)} placeholder="Lucas Mendes da Silva" />
       </Field>

@@ -45,25 +45,25 @@ function Perfil() {
   )) as 1 | 2 | 3 | 4;
 
   return (
-    <div className="h-screen overflow-auto">
+    <div className="h-full overflow-auto pb-24 lg:pb-0">
       <PageHeader title="Perfil" subtitle="Suas informações de cadastro e segurança" />
-      <div className="p-8 flex justify-center">
-        <div className="max-w-[640px] w-full flex flex-col gap-5">
+      <div className="p-4 sm:p-6 lg:p-8 flex justify-center">
+        <div className="max-w-[640px] w-full flex flex-col gap-4 sm:gap-5">
           {/* Profile */}
           <Card style={{ padding: 0 }}>
-            <div className="relative px-8 pt-7 pb-5 text-white" style={{ background: "var(--forest)" }}>
-              <svg className="absolute opacity-[.04]" style={{ right: -10, top: -10 }} width="180" height="180" viewBox="0 0 200 200">
+            <div className="relative px-5 sm:px-7 lg:px-8 pt-6 sm:pt-7 pb-5 text-white" style={{ background: "var(--forest)" }}>
+              <svg className="absolute opacity-[.04] hidden sm:block" style={{ right: -10, top: -10 }} width="180" height="180" viewBox="0 0 200 200">
                 <circle cx="100" cy="100" r="96" fill="none" stroke="#fff" strokeWidth="2" />
               </svg>
-              <div className="flex items-center gap-5 relative">
-                <div className="w-[88px] h-[88px] rounded-full flex items-center justify-center text-[32px] font-bold border-[3px] border-white/15"
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5 relative">
+                <div className="w-[68px] h-[68px] sm:w-[88px] sm:h-[88px] rounded-full flex items-center justify-center text-[24px] sm:text-[32px] font-bold border-[3px] border-white/15 shrink-0"
                   style={{ background: "var(--brand-accent)" }}>{initials}</div>
-                <div>
-                  <div className="flex items-center gap-[10px]">
-                    <h2 className="m-0 text-[28px] font-semibold tracking-[-0.015em]">{user.full_name}</h2>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-[10px] flex-wrap">
+                    <h2 className="m-0 text-[22px] sm:text-[28px] font-semibold tracking-[-0.015em] break-words">{user.full_name}</h2>
                     <Chip tone="sage">{user.role === "professor" ? "Professor" : "Aluno"}</Chip>
                   </div>
-                  <div className="text-[13px] text-white/70 mt-1">
+                  <div className="text-[12px] sm:text-[13px] text-white/70 mt-1 break-all">
                     {user.email} {user.ra && <>· RA {user.ra}</>}
                   </div>
                   <div className="text-[12px] text-white/50 mt-[6px]">{memberSince}</div>
@@ -76,14 +76,14 @@ function Perfil() {
                 ["SEMESTRE", user.semester ? `${user.semester}º` : "—"],
                 ["PERÍODO", user.period === "matutino" ? "Matutino" : "Noturno"],
               ] as const).map(([k, v]) => (
-                <div key={k} className="px-6 py-5 border-r border-hairline last:border-r-0">
+                <div key={k} className="px-3 sm:px-6 py-4 sm:py-5 border-r border-hairline last:border-r-0 min-w-0">
                   <div className="text-[10px] tracking-[1.5px] font-bold text-soft">{k}</div>
-                  <div className="text-base font-semibold mt-[6px] text-ink">{v}</div>
+                  <div className="text-[13px] sm:text-base font-semibold mt-[6px] text-ink truncate">{v}</div>
                 </div>
               ))}
             </div>
-            <div className="px-6 py-4 flex justify-between items-center bg-cream">
-              <div className="text-[13px] text-body">
+            <div className="px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 bg-cream">
+              <div className="text-[12px] sm:text-[13px] text-body">
                 {myGroupName ? (
                   <>Grupo: <strong>{myGroupName}</strong> <span className="text-soft">· #{myRank || "—"} no ranking · {myKg} kg</span></>
                 ) : (
@@ -95,7 +95,7 @@ function Perfil() {
           </Card>
 
           {/* Change password */}
-          <Card style={{ padding: 28 }}>
+          <Card className="p-5 sm:p-7">
             <button type="button" onClick={() => setShowPwd((v) => !v)} className="w-full flex justify-between items-center cursor-pointer text-left bg-transparent border-0">
               <div>
                 <h3 className="m-0 text-[18px] font-semibold tracking-[-0.01em]">Alterar senha</h3>
@@ -128,8 +128,8 @@ function Perfil() {
           </Card>
 
           {/* Danger zone */}
-          <Card style={{ padding: 24, border: "1px solid var(--danger)", background: "#FCF7F7" }}>
-            <div className="flex justify-between items-center">
+          <Card className="p-5 sm:p-6" style={{ border: "1px solid var(--danger)", background: "#FCF7F7" }}>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
               <div>
                 <h3 className="m-0 text-[16px] font-semibold" style={{ color: "var(--danger)" }}>Sair da conta</h3>
                 <div className="text-[13px] text-body mt-1">Você será desconectado desta sessão.</div>

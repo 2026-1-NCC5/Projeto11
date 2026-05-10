@@ -103,13 +103,13 @@ export function PageHeader({
   title, subtitle, right,
 }: { title: string; subtitle?: string; right?: ReactNode }) {
   return (
-    <div className="flex items-end justify-between px-8 pt-8 pb-6 border-b border-hairline bg-cream">
-      <div>
-        <div className="text-[11px] font-bold tracking-[1.5px] text-soft mb-2">LIDERANÇAS EMPÁTICAS</div>
-        <h1 className="m-0 text-[34px] font-semibold leading-[1.1] tracking-[-0.02em] text-ink">{title}</h1>
-        {subtitle && <div className="mt-[6px] text-sm text-soft">{subtitle}</div>}
+    <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 px-4 sm:px-6 lg:px-8 pt-5 sm:pt-6 lg:pt-8 pb-4 lg:pb-6 border-b border-hairline bg-cream">
+      <div className="min-w-0">
+        <div className="text-[11px] font-bold tracking-[1.5px] text-soft mb-1 lg:mb-2">LIDERANÇAS EMPÁTICAS</div>
+        <h1 className="m-0 text-[24px] sm:text-[28px] lg:text-[34px] font-semibold leading-[1.1] tracking-[-0.02em] text-ink">{title}</h1>
+        {subtitle && <div className="mt-[6px] text-[13px] sm:text-sm text-soft">{subtitle}</div>}
       </div>
-      {right && <div className="flex items-center gap-[10px]">{right}</div>}
+      {right && <div className="flex items-center gap-[10px] flex-wrap">{right}</div>}
     </div>
   );
 }

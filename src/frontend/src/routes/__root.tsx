@@ -75,12 +75,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Lideranças Empáticas — FECAP" },
       { name: "description", content: "Sistema de arrecadação de alimentos · Lideranças Empáticas FECAP" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { name: "author", content: "FECAP" },
+      { property: "og:title", content: "Lideranças Empáticas — FECAP" },
+      { property: "og:description", content: "Sistema de arrecadação de alimentos · Lideranças Empáticas FECAP" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {

@@ -84,16 +84,23 @@ function StatCard({ title, subtitle, value, unit, delta, featured, tone = "green
 }) {
   const accents = { green: "var(--brand-accent)", arroz: "var(--arroz)", feijao: "var(--feijao)", macarrao: "var(--macarrao)" };
   return (
-    <Card accent={accents[tone]} style={{ padding: 22, background: featured ? "var(--forest)" : "#fff", color: featured ? "#fff" : "var(--body-color)" }}>
-      <div className="flex justify-between items-start mb-[18px]">
-        <div>
-          <div className="text-[12px] font-bold tracking-[1px] uppercase" style={{ color: featured ? "rgba(255,255,255,0.7)" : "var(--soft)" }}>{title}</div>
-          <div className="text-[11px] mt-1" style={{ color: featured ? "rgba(255,255,255,0.5)" : "var(--soft)" }}>{subtitle}</div>
+    <Card
+      accent={accents[tone]}
+      className="p-4 sm:p-5"
+      style={{ background: featured ? "var(--forest)" : "#fff", color: featured ? "#fff" : "var(--body-color)" }}
+    >
+      <div className="flex justify-between items-start mb-3 sm:mb-[18px] gap-2">
+        <div className="min-w-0">
+          <div className="text-[11px] sm:text-[12px] font-bold tracking-[1px] uppercase truncate" style={{ color: featured ? "rgba(255,255,255,0.7)" : "var(--soft)" }}>{title}</div>
+          <div className="text-[11px] mt-1 truncate" style={{ color: featured ? "rgba(255,255,255,0.5)" : "var(--soft)" }}>{subtitle}</div>
         </div>
-        {featured ? <BrandLogo size={36} /> : tone !== "green" && <CategoryGlyph tone={tone as "arroz" | "feijao" | "macarrao"} />}
+        {featured ? <BrandLogo size={32} /> : tone !== "green" && <CategoryGlyph tone={tone as "arroz" | "feijao" | "macarrao"} />}
       </div>
       <div className="flex items-baseline gap-[6px]">
-        <Digits size={42} weight={700} color={featured ? "#fff" : "var(--ink)"}>{value}</Digits>
+        <span
+          className="font-mono tabular tracking-tight text-[32px] sm:text-[38px] lg:text-[42px] font-bold leading-none"
+          style={{ color: featured ? "#fff" : "var(--ink)", letterSpacing: "-0.03em" }}
+        >{value}</span>
         <span className="text-sm font-medium" style={{ color: featured ? "rgba(255,255,255,0.7)" : "var(--soft)" }}>{unit}</span>
       </div>
       {delta && (
@@ -151,7 +158,7 @@ function Dashboard() {
   }
 
   return (
-    <div className="h-screen overflow-auto">
+    <div className="h-full overflow-auto pb-24 lg:pb-0">
       <PageHeader
         title="Dashboard"
         subtitle={`Visão geral da campanha 2026.1 · ${agg.isLoading ? "carregando…" : "atualizada agora"}`}
@@ -163,7 +170,7 @@ function Dashboard() {
         }
       />
 
-      <div className="px-8 py-5 flex gap-3 items-center border-b border-hairline bg-cream">
+      <div className="px-4 sm:px-6 lg:px-8 py-4 lg:py-5 flex gap-2 sm:gap-3 items-center border-b border-hairline bg-cream overflow-x-auto flex-nowrap lg:flex-wrap">
         <FilterChip
           label="PERÍODO"
           value={period}
@@ -189,17 +196,17 @@ function Dashboard() {
         <Btn
           kind={isFiltering ? "outline" : "ghost"}
           sm
-          className="ml-auto"
+          className="lg:ml-auto shrink-0"
           onClick={resetFilters}
           disabled={!isFiltering}
         >
-          Limpar filtros
+          Limpar
         </Btn>
       </div>
 
-      <div className="p-8 flex flex-col gap-6">
+      <div className="p-4 sm:p-6 lg:p-8 flex flex-col gap-4 lg:gap-6">
         {/* Stat cards */}
-        <div className="grid gap-4" style={{ gridTemplateColumns: "1.4fr 1fr 1fr 1fr" }}>
+        <div className="grid gap-3 lg:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <StatCard title="Total Geral" subtitle="Arrecadação total da campanha" value={total} unit="kg" delta={days ? `últimos ${days} dias` : "todo período"} featured />
           <StatCard title="Arroz" subtitle={`${c.arroz} registros`} value={c.arroz} unit="kg" tone="arroz" />
           <StatCard title="Feijão" subtitle={`${c.feijao} registros`} value={c.feijao} unit="kg" tone="feijao" />
@@ -207,8 +214,8 @@ function Dashboard() {
         </div>
 
         {/* Two columns */}
-        <div className="grid gap-5" style={{ gridTemplateColumns: "1.5fr 1fr" }}>
-          <Card style={{ padding: 28 }}>
+        <div className="grid gap-4 lg:gap-5 grid-cols-1 xl:grid-cols-[1.5fr_1fr]">
+          <Card className="p-5 sm:p-6 lg:p-7">
             <div className="flex justify-between items-start mb-6">
               <div>
                 <h3 className="m-0 text-[18px] font-semibold tracking-[-0.01em]">Arrecadação ao longo do tempo</h3>
@@ -217,7 +224,7 @@ function Dashboard() {
                 </div>
               </div>
             </div>
-            <div style={{ width: "100%", height: 240 }}>
+            <div style={{ width: "100%", height: 220 }} className="sm:!h-[240px]">
               <ResponsiveContainer>
                 <AreaChart data={series.data ?? []} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                   <CartesianGrid stroke="var(--hairline)" vertical={false} />
@@ -230,7 +237,7 @@ function Dashboard() {
                 </AreaChart>
               </ResponsiveContainer>
             </div>
-            <div className="flex gap-6 mt-4">
+            <div className="flex flex-wrap gap-3 sm:gap-6 mt-4">
               <Legend color="var(--arroz)" label="Arroz" value={`${c.arroz} kg`} />
               <Legend color="var(--feijao)" label="Feijão" value={`${c.feijao} kg`} />
               <Legend color="var(--macarrao)" label="Macarrão" value={`${c.macarrao} kg`} />
@@ -238,10 +245,10 @@ function Dashboard() {
           </Card>
 
           <Card style={{ padding: 0 }}>
-            <div className="px-6 pt-6 pb-4 border-b border-hairline">
-              <div className="flex justify-between items-center">
-                <h3 className="m-0 text-[18px] font-semibold tracking-[-0.01em]">Ranking de Grupos</h3>
-                <span className="text-[12px] text-soft">{ranking.data?.length ?? 0} grupos</span>
+            <div className="px-4 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-hairline">
+              <div className="flex justify-between items-center gap-2">
+                <h3 className="m-0 text-[16px] sm:text-[18px] font-semibold tracking-[-0.01em]">Ranking de Grupos</h3>
+                <span className="text-[12px] text-soft shrink-0">{ranking.data?.length ?? 0} grupos</span>
               </div>
             </div>
             <div>
@@ -250,7 +257,7 @@ function Dashboard() {
                 const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : "";
                 const highlight = r.id === myGroupId;
                 return (
-                  <div key={r.id} className="flex items-center gap-[14px] px-6 py-[14px] border-b border-hairline"
+                  <div key={r.id} className="flex items-center gap-3 sm:gap-[14px] px-4 sm:px-6 py-3 sm:py-[14px] border-b border-hairline"
                     style={{ background: highlight ? "var(--sage)" : "transparent" }}>
                     <div className="font-mono font-bold text-[13px] w-7 h-7 rounded-lg flex items-center justify-center"
                       style={{
@@ -258,13 +265,13 @@ function Dashboard() {
                         color: rank <= 3 ? "#fff" : "var(--soft)",
                         border: rank > 3 ? "1px solid var(--hairline)" : undefined,
                       }}>{rank}</div>
-                    <div className="flex-1 text-sm font-semibold">
+                    <div className="flex-1 min-w-0 text-sm font-semibold truncate">
                       {r.name}
                       {highlight && <span className="ml-2 text-[10px] font-bold tracking-[1px]" style={{ color: "var(--green)" }}>VOCÊ</span>}
                     </div>
                     <Digits size={15} color="var(--ink)">{r.kg}</Digits>
                     <span className="text-[12px] text-soft">kg</span>
-                    <span className="text-base w-[22px]">{medal}</span>
+                    <span className="text-base w-[22px] hidden sm:inline">{medal}</span>
                   </div>
                 );
               })}
@@ -278,10 +285,10 @@ function Dashboard() {
         </div>
 
         {/* Bottom — grouped bars */}
-        <Card style={{ padding: 28 }}>
-          <div className="flex justify-between items-start mb-6">
+        <Card className="p-5 sm:p-6 lg:p-7">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-4 sm:mb-6">
             <div>
-              <h3 className="m-0 text-[18px] font-semibold tracking-[-0.01em]">Distribuição por Categoria — por Grupo</h3>
+              <h3 className="m-0 text-[16px] sm:text-[18px] font-semibold tracking-[-0.01em]">Distribuição por Categoria — por Grupo</h3>
               <div className="text-[12px] text-soft mt-1">Quilos coletados por cada grupo</div>
             </div>
             <div className="flex gap-4">
@@ -299,11 +306,11 @@ function Dashboard() {
 function GroupedBars({ data }: { data: Array<{ id: string; name: string; kg: number }> }) {
   const top = data.slice(0, 6).map((g) => ({ name: g.name, total: g.kg }));
   return (
-    <div style={{ width: "100%", height: 280 }}>
+    <div style={{ width: "100%", height: 240 }} className="sm:!h-[280px]">
       <ResponsiveContainer>
         <BarChart data={top} margin={{ top: 20, right: 10, left: -10, bottom: 0 }}>
           <CartesianGrid stroke="var(--hairline)" vertical={false} />
-          <XAxis dataKey="name" stroke="var(--soft)" fontSize={12} />
+          <XAxis dataKey="name" stroke="var(--soft)" fontSize={11} interval={0} angle={-15} textAnchor="end" height={50} />
           <YAxis stroke="var(--soft)" fontSize={10} />
           <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid var(--hairline)" }} />
           <RLegend />
