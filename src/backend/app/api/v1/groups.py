@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+from datetime import datetime
 
 from fastapi import APIRouter, HTTPException, status
 
@@ -59,9 +60,14 @@ async def create_group(
 
 @router.get("/ranking", response_model=list[GroupRankingItem])
 async def list_ranking(
-    session: SessionDep, _: CurrentUser
+    session: SessionDep,
+    _: CurrentUser,
+    course: str | None = None,
+    since: datetime | None = None,
 ) -> list[GroupRankingItem]:
-    rows = await evidences_service.list_groups_ranking(session)
+    rows = await evidences_service.list_groups_ranking(
+        session, course=course, since=since
+    )
     return [GroupRankingItem(**r) for r in rows]
 
 

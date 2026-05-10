@@ -32,30 +32,51 @@ async def list_evidences(
 
 
 async def aggregate_by_category(
-    session: AsyncSession, *, group_id: uuid.UUID | None
+    session: AsyncSession,
+    *,
+    group_id: uuid.UUID | None,
+    since: datetime | None = None,
 ) -> dict:
     counts_expr = {c: func.sum(case((Evidence.category == c, 1), else_=0)) for c in FoodCategory}
     stmt = select(*counts_expr.values())
     if group_id is not None:
         stmt = stmt.where(Evidence.group_id == group_id)
+    if since is not None:
+        stmt = stmt.where(Evidence.detected_at >= since)
     row = (await session.execute(stmt)).one()
     counts = {c.value: int(v or 0) for c, v in zip(counts_expr.keys(), row, strict=True)}
     return {"counts": counts, "total": sum(counts.values())}
 
 
-async def list_groups_ranking(session: AsyncSession) -> list[dict]:
-    kg_count = (
-        select(Evidence.group_id, func.count().label("kg"))
-        .group_by(Evidence.group_id)
-        .subquery()
+async def list_groups_ranking(
+    session: AsyncSession,
+    *,
+    course: str | None = None,
+    since: datetime | None = None,
+) -> list[dict]:
+    from app.models.group_member import GroupMember
+    from app.models.user import User
+
+    kg_stmt = select(Evidence.group_id, func.count().label("kg"))
+    if since is not None:
+        kg_stmt = kg_stmt.where(Evidence.detected_at >= since)
+    kg_count = kg_stmt.group_by(Evidence.group_id).subquery()
+
+    base = (
+        select(Group, func.coalesce(kg_count.c.kg, 0))
+        .outerjoin(kg_count, kg_count.c.group_id == Group.id)
     )
-    rows = (
-        await session.execute(
-            select(Group, func.coalesce(kg_count.c.kg, 0))
-            .outerjoin(kg_count, kg_count.c.group_id == Group.id)
-            .order_by(func.coalesce(kg_count.c.kg, 0).desc(), Group.name.asc())
+    if course is not None:
+        base = base.where(
+            Group.id.in_(
+                select(GroupMember.group_id)
+                .join(User, User.id == GroupMember.user_id)
+                .where(User.course == course)
+            )
         )
-    ).all()
+    base = base.order_by(func.coalesce(kg_count.c.kg, 0).desc(), Group.name.asc())
+
+    rows = (await session.execute(base)).all()
     return [
         {"id": g.id, "name": g.name, "created_at": g.created_at, "kg": int(kg)}
         for (g, kg) in rows

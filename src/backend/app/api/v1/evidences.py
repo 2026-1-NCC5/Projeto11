@@ -62,12 +62,13 @@ async def aggregate(
     session: SessionDep,
     current: CurrentUser,
     group_id: uuid.UUID | None = None,
+    since: datetime | None = None,
 ) -> EvidenceAggregateOut:
     effective_group, has_access = await _resolve_group_id(session, current, group_id)
     if not has_access:
         return EvidenceAggregateOut(counts=CategoryCounts(), total=0)
     data = await evidences_service.aggregate_by_category(
-        session, group_id=effective_group
+        session, group_id=effective_group, since=since,
     )
     return EvidenceAggregateOut(
         counts=CategoryCounts(**data["counts"]),

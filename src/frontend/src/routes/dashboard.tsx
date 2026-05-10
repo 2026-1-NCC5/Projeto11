@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { RequireAuth } from "@/components/require-auth";
 import { Btn, Card, Chip, Digits, PageHeader, Caret } from "@/components/le-ui";
 import { BrandLogo } from "@/components/brand";
@@ -9,6 +10,51 @@ import { useAuth } from "@/lib/auth-context";
 export const Route = createFileRoute("/dashboard")({
   component: () => <RequireAuth><Dashboard /></RequireAuth>,
 });
+
+type PeriodKey = "7" | "30" | "60" | "all";
+const PERIOD_OPTIONS: { value: PeriodKey; label: string; days: number | null }[] = [
+  { value: "7", label: "Últimos 7 dias", days: 7 },
+  { value: "30", label: "Últimos 30 dias", days: 30 },
+  { value: "60", label: "Últimos 60 dias", days: 60 },
+  { value: "all", label: "Todo período", days: null },
+];
+
+const COURSE_OPTIONS = [
+  { value: "", label: "Todos os cursos" },
+  { value: "Administração", label: "Administração" },
+  { value: "Ciências Contábeis", label: "Ciências Contábeis" },
+  { value: "Ciências Econômicas", label: "Ciências Econômicas" },
+] as const;
+
+function FilterChip<T extends string>({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: T;
+  options: { value: T; label: string }[];
+  onChange: (v: T) => void;
+}) {
+  const display = options.find((o) => o.value === value)?.label ?? "—";
+  return (
+    <label className="relative flex items-center gap-2 px-[14px] py-2 bg-white rounded-full border border-hairline text-[13px] cursor-pointer hover:border-brand-accent/60">
+      <span className="text-soft text-[11px] font-semibold">{label}</span>
+      <span className="font-semibold">{display}</span>
+      <Caret />
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value as T)}
+        className="absolute inset-0 opacity-0 cursor-pointer"
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>{o.label}</option>
+        ))}
+      </select>
+    </label>
+  );
+}
 
 function Legend({ color, label, value }: { color: string; label: string; value?: string }) {
   return (
@@ -62,14 +108,47 @@ function StatCard({ title, subtitle, value, unit, delta, featured, tone = "green
 
 function Dashboard() {
   const { user } = useAuth();
-  const agg = useEvidencesAggregate();
-  const ranking = useGroupsRanking();
-  const series = useTimeSeries(60);
+  const isProfessor = user?.role === "professor";
+
+  const [period, setPeriod] = useState<PeriodKey>("60");
+  const [groupId, setGroupId] = useState<string>("");
+  const [course, setCourse] = useState<string>("");
+
+  const days = PERIOD_OPTIONS.find((p) => p.value === period)?.days ?? null;
+  const since = useMemo(
+    () => (days ? new Date(Date.now() - days * 86400000).toISOString() : undefined),
+    [days]
+  );
+
   const myGroup = useMyGroup();
   const myGroupId = myGroup.data?.group?.id;
 
+  // Aluno: queries são forçadas pelo backend pro grupo dele; Grupo/Curso ficam ocultos
+  const effectiveGroupId = isProfessor && groupId ? groupId : undefined;
+  const effectiveCourse = isProfessor && course ? course : undefined;
+
+  const agg = useEvidencesAggregate({ groupId: effectiveGroupId, since });
+  const ranking = useGroupsRanking({ course: effectiveCourse, since });
+  const series = useTimeSeries(days ?? 365, effectiveGroupId);
+
   const total = agg.data?.total ?? 0;
-  const c = agg.data?.counts ?? { arroz: 0, feijao: 0, macarrao: 0 };
+  const c = agg.data?.counts ?? { arroz: 0, feijao: 0, macarrao: 0, acucar: 0, oleo: 0, fuba: 0 };
+
+  const groupOptions = useMemo(
+    () => [
+      { value: "", label: "Todos os grupos" },
+      ...(ranking.data ?? []).map((g) => ({ value: g.id, label: g.name })),
+    ],
+    [ranking.data]
+  );
+
+  const isFiltering =
+    period !== "60" || (isProfessor && (groupId !== "" || course !== ""));
+  function resetFilters() {
+    setPeriod("60");
+    setGroupId("");
+    setCourse("");
+  }
 
   return (
     <div className="h-screen overflow-auto">
@@ -85,24 +164,43 @@ function Dashboard() {
       />
 
       <div className="px-8 py-5 flex gap-3 items-center border-b border-hairline bg-cream">
-        {[
-          ["PERÍODO", "Últimos 60 dias"],
-          ["GRUPO", "Todos os grupos"],
-          ["CURSO", "Todos"],
-        ].map(([k, v]) => (
-          <div key={k} className="flex items-center gap-2 px-[14px] py-2 bg-white rounded-full border border-hairline text-[13px]">
-            <span className="text-soft text-[11px] font-semibold">{k}</span>
-            <span className="font-semibold">{v}</span>
-            <Caret />
-          </div>
-        ))}
-        <Btn kind="primary" sm className="ml-auto">Aplicar filtros</Btn>
+        <FilterChip
+          label="PERÍODO"
+          value={period}
+          options={PERIOD_OPTIONS.map(({ value, label }) => ({ value, label }))}
+          onChange={setPeriod}
+        />
+        {isProfessor && (
+          <>
+            <FilterChip
+              label="GRUPO"
+              value={groupId}
+              options={groupOptions}
+              onChange={setGroupId}
+            />
+            <FilterChip
+              label="CURSO"
+              value={course}
+              options={[...COURSE_OPTIONS]}
+              onChange={setCourse}
+            />
+          </>
+        )}
+        <Btn
+          kind={isFiltering ? "outline" : "ghost"}
+          sm
+          className="ml-auto"
+          onClick={resetFilters}
+          disabled={!isFiltering}
+        >
+          Limpar filtros
+        </Btn>
       </div>
 
       <div className="p-8 flex flex-col gap-6">
         {/* Stat cards */}
         <div className="grid gap-4" style={{ gridTemplateColumns: "1.4fr 1fr 1fr 1fr" }}>
-          <StatCard title="Total Geral" subtitle="Arrecadação total da campanha" value={total} unit="kg" delta="dados em tempo real" featured />
+          <StatCard title="Total Geral" subtitle="Arrecadação total da campanha" value={total} unit="kg" delta={days ? `últimos ${days} dias` : "todo período"} featured />
           <StatCard title="Arroz" subtitle={`${c.arroz} registros`} value={c.arroz} unit="kg" tone="arroz" />
           <StatCard title="Feijão" subtitle={`${c.feijao} registros`} value={c.feijao} unit="kg" tone="feijao" />
           <StatCard title="Macarrão" subtitle={`${c.macarrao} registros`} value={c.macarrao} unit="kg" tone="macarrao" />
@@ -114,17 +212,9 @@ function Dashboard() {
             <div className="flex justify-between items-start mb-6">
               <div>
                 <h3 className="m-0 text-[18px] font-semibold tracking-[-0.01em]">Arrecadação ao longo do tempo</h3>
-                <div className="text-[12px] text-soft mt-1">Quilos acumulados por categoria · últimos 60 dias</div>
-              </div>
-              <div className="flex gap-[6px]">
-                {["7D", "30D", "60D", "Tudo"].map((p, i) => (
-                  <div key={p} className="px-[11px] py-[5px] rounded-full text-[12px] font-semibold"
-                    style={{
-                      background: i === 2 ? "var(--forest)" : "transparent",
-                      color: i === 2 ? "#fff" : "var(--soft)",
-                      border: i === 2 ? "none" : "1px solid var(--hairline)",
-                    }}>{p}</div>
-                ))}
+                <div className="text-[12px] text-soft mt-1">
+                  Quilos acumulados por categoria · {PERIOD_OPTIONS.find((p) => p.value === period)?.label.toLowerCase()}
+                </div>
               </div>
             </div>
             <div style={{ width: "100%", height: 240 }}>
@@ -180,12 +270,9 @@ function Dashboard() {
               })}
               {(!ranking.data || ranking.data.length === 0) && (
                 <div className="px-6 py-8 text-center text-soft text-sm">
-                  {ranking.isLoading ? "Carregando…" : "Sem grupos registrados ainda."}
+                  {ranking.isLoading ? "Carregando…" : "Sem grupos para os filtros atuais."}
                 </div>
               )}
-              <div className="p-4 text-center">
-                <a className="text-[13px] font-semibold cursor-pointer" style={{ color: "var(--green)" }}>Ver todos →</a>
-              </div>
             </div>
           </Card>
         </div>
@@ -195,12 +282,10 @@ function Dashboard() {
           <div className="flex justify-between items-start mb-6">
             <div>
               <h3 className="m-0 text-[18px] font-semibold tracking-[-0.01em]">Distribuição por Categoria — por Grupo</h3>
-              <div className="text-[12px] text-soft mt-1">Quilos coletados por cada categoria, comparados entre grupos</div>
+              <div className="text-[12px] text-soft mt-1">Quilos coletados por cada grupo</div>
             </div>
             <div className="flex gap-4">
-              <Legend color="var(--arroz)" label="Arroz" />
-              <Legend color="var(--feijao)" label="Feijão" />
-              <Legend color="var(--macarrao)" label="Macarrão" />
+              <Legend color="var(--brand-accent)" label="Total kg" />
             </div>
           </div>
           <GroupedBars data={ranking.data ?? []} />
@@ -212,8 +297,6 @@ function Dashboard() {
 }
 
 function GroupedBars({ data }: { data: Array<{ id: string; name: string; kg: number }> }) {
-  // For each group, fetch per-category breakdown via single query result we already have? simpler: derive from evidences
-  // Use a secondary lightweight query inline:
   const top = data.slice(0, 6).map((g) => ({ name: g.name, total: g.kg }));
   return (
     <div style={{ width: "100%", height: 280 }}>

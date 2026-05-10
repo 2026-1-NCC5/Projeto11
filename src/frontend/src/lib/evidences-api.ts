@@ -78,10 +78,23 @@ export const evidencesApi = {
     return call<EvidenceFeedItem[]>(`/evidences${tail ? `?${tail}` : ""}`);
   },
 
-  aggregate: (opts: { groupId?: string } = {}) => {
-    const qs = opts.groupId ? `?group_id=${opts.groupId}` : "";
-    return call<EvidenceAggregate>(`/evidences/aggregate${qs}`);
+  aggregate: (opts: { groupId?: string; since?: string } = {}) => {
+    const qs = new URLSearchParams();
+    if (opts.groupId) qs.set("group_id", opts.groupId);
+    if (opts.since) qs.set("since", opts.since);
+    const tail = qs.toString();
+    return call<EvidenceAggregate>(
+      `/evidences/aggregate${tail ? `?${tail}` : ""}`
+    );
   },
 
-  ranking: () => call<GroupRankingItem[]>("/groups/ranking"),
+  ranking: (opts: { course?: string; since?: string } = {}) => {
+    const qs = new URLSearchParams();
+    if (opts.course) qs.set("course", opts.course);
+    if (opts.since) qs.set("since", opts.since);
+    const tail = qs.toString();
+    return call<GroupRankingItem[]>(
+      `/groups/ranking${tail ? `?${tail}` : ""}`
+    );
+  },
 };

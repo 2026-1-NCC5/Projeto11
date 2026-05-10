@@ -5,11 +5,14 @@ import { evidencesApi, type FoodCategory } from "@/lib/evidences-api";
 
 export type { FoodCategory };
 
-export function useEvidencesAggregate(opts?: { groupId?: string }) {
+export function useEvidencesAggregate(opts?: { groupId?: string; since?: string }) {
   return useQuery({
-    queryKey: ["evidences-agg", opts?.groupId ?? "all"],
+    queryKey: ["evidences-agg", opts?.groupId ?? "all", opts?.since ?? "all"],
     queryFn: async () => {
-      const res = await evidencesApi.aggregate({ groupId: opts?.groupId });
+      const res = await evidencesApi.aggregate({
+        groupId: opts?.groupId,
+        since: opts?.since,
+      });
       return { counts: res.counts, total: res.total };
     },
   });
@@ -36,10 +39,11 @@ export function useEvidencesFeed(opts?: {
   });
 }
 
-export function useGroupsRanking() {
+export function useGroupsRanking(opts?: { course?: string; since?: string }) {
   return useQuery({
-    queryKey: ["groups-ranking"],
-    queryFn: () => evidencesApi.ranking(),
+    queryKey: ["groups-ranking", opts?.course ?? "all", opts?.since ?? "all"],
+    queryFn: () =>
+      evidencesApi.ranking({ course: opts?.course, since: opts?.since }),
   });
 }
 
