@@ -79,6 +79,7 @@ async function call<T>(
     credentials: "include", // CRÍTICO: envia/recebe cookies httpOnly
     headers: {
       "Content-Type": "application/json",
+      "ngrok-skip-browser-warning": "1",
       ...(headers || {}),
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,

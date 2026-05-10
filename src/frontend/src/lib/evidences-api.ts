@@ -47,7 +47,10 @@ export type GroupRankingItem = {
 async function call<T>(path: string): Promise<T> {
   const res = await fetch(`${API}${path}`, {
     credentials: "include",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "ngrok-skip-browser-warning": "1",
+    },
   });
   if (!res.ok) {
     let detail: string;

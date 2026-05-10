@@ -67,6 +67,7 @@ async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
+      "ngrok-skip-browser-warning": "1",
       ...(init.headers || {}),
     },
   });
