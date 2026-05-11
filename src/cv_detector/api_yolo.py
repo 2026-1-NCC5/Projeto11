@@ -1,27 +1,26 @@
-from fastapi import FastAPI, UploadFile, File, Form
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel # --- ADICIONADO: Para receber o nome da equipe do Front-end ---
-from ultralytics import YOLO
+from pydantic import BaseModel
 import tempfile
 import shutil
-import cv2
 import os
+import re
+import hashlib
+import unicodedata
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 from supabase import create_client, Client
-from dotenv import load_dotenv 
+from dotenv import load_dotenv
 
-# Carrega as variáveis do arquivo .env para a memória
 load_dotenv()
 
-# --- CREDENCIAIS DO SUPABASE 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+FRAMES_BUCKET = os.getenv("SUPABASE_FRAMES_BUCKET", "frames")
 
 if not SUPABASE_URL or not SUPABASE_KEY:
     raise ValueError("Erro Crítico: Credenciais do Supabase não encontradas. Verifique seu arquivo .env!")
 
-# Inicializa a conexão com o banco
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 app = FastAPI()
@@ -35,54 +34,133 @@ app.add_middleware(
 )
 
 BASE_DIR = Path(__file__).resolve().parent
-MODEL_PATH = BASE_DIR / "runs" / "detect" / "treino_alimentos_final" / "weights" / "best.pt"
-EVIDENCIAS_DIR = BASE_DIR / "evidencias" 
+EVIDENCIAS_DIR = BASE_DIR / "evidencias"
 os.makedirs(EVIDENCIAS_DIR, exist_ok=True)
 
-CONFIDENCE_THRESHOLD = 0.60
+CATEGORIAS_VALIDAS = {"arroz", "feijao", "acucar", "macarrao", "oleo", "fuba"}
 
-if not MODEL_PATH.exists():
-    raise FileNotFoundError(f"Modelo não encontrado em: {MODEL_PATH}")
 
-model = YOLO(str(MODEL_PATH))
+def normalizar_categoria(label: str) -> str | None:
+    s = unicodedata.normalize("NFKD", label).encode("ascii", "ignore").decode("ascii")
+    s = s.lower().strip()
+    return s if s in CATEGORIAS_VALIDAS else None
 
-# --- ADICIONADO: Estrutura para receber o nome da equipe do Front-end ---
-class NovaEquipe(BaseModel):
-    nome: str
+
+def slugificar(texto: str) -> str:
+    s = unicodedata.normalize("NFKD", texto).encode("ascii", "ignore").decode("ascii")
+    s = re.sub(r"[^a-zA-Z0-9]+", "-", s).strip("-").lower()
+    return s or "grupo"
+
+
+def calcular_dedup_hash(category: str, bbox: list[int] | None, ts: datetime) -> str:
+    bucket = int(ts.timestamp() // 5)
+    if bbox:
+        x1, y1, x2, y2 = bbox
+        bbox_q = (x1 // 16, y1 // 16, x2 // 16, y2 // 16)
+    else:
+        bbox_q = (0, 0, 0, 0)
+    base = f"{category}|{bbox_q}|{bucket}"
+    return hashlib.sha1(base.encode("utf-8")).hexdigest()
+
+
+class NovoGrupo(BaseModel):
+    name: str
+    created_by: str | None = None
+
+
+class NovaSessao(BaseModel):
+    group_id: str
+    started_by: str | None = None
+
 
 @app.get("/")
 def root():
     return {"status": "ok", "message": "API LE - Edge Gateway Rodando!"}
 
-@app.get("/equipes")
-def listar_equipes():
+
+@app.get("/groups")
+def listar_grupos():
     try:
-        # Busca ID e NOME. (Se lá no Supabase a coluna for 'name', mude aqui!)
-        resposta = supabase.table("equipes").select("id, nome").order("id").execute()
-        return {"status": "sucesso", "equipes": resposta.data}
+        resposta = supabase.table("groups").select("id, name, created_by").order("name").execute()
+        print(f"[/groups] {len(resposta.data or [])} grupos retornados")
+        return {"status": "sucesso", "groups": resposta.data or []}
+    except Exception as e:
+        print(f"[/groups] ERRO: {e!r}")
+        return {"status": "erro", "mensagem": str(e)}
+
+
+@app.post("/groups")
+def cadastrar_grupo(grupo: NovoGrupo):
+    try:
+        payload = {"name": grupo.name}
+        if grupo.created_by:
+            payload["created_by"] = grupo.created_by
+        resposta = supabase.table("groups").insert(payload).execute()
+        return {"status": "sucesso", "group": resposta.data[0] if resposta.data else None}
     except Exception as e:
         return {"status": "erro", "mensagem": str(e)}
 
-# --- ADICIONADO: Rota para o Front-end cadastrar novas equipes ---
-@app.post("/cadastrar_equipe")
-def cadastrar_equipe(equipe: NovaEquipe):
-    try:
-        # Insere o nome na tabela. O ID o Supabase cria sozinho.
-        resposta = supabase.table("equipes").insert({"nome": equipe.nome}).execute()
-        return {"status": "sucesso", "mensagem": "Equipe cadastrada!", "dados": resposta.data}
-    except Exception as e:
-        return {"status": "erro", "mensagem": str(e)}
-# ------------------------------------------------------------------
 
-# Recebe o ID e o Nome
-@app.post("/registrar_contagem")
-async def registrar_contagem(
-    equipe_id: int = Form(...),
-    equipe_nome: str = Form(...), 
-    image: UploadFile = File(...)
+@app.post("/sessions")
+def iniciar_sessao(sessao: NovaSessao):
+    try:
+        started_by = sessao.started_by
+        if not started_by:
+            grupo = (
+                supabase.table("groups")
+                .select("created_by")
+                .eq("id", sessao.group_id)
+                .single()
+                .execute()
+            )
+            started_by = grupo.data["created_by"]
+
+        payload = {"group_id": sessao.group_id, "started_by": started_by}
+        resposta = supabase.table("detection_sessions").insert(payload).execute()
+        return {"status": "sucesso", "session": resposta.data[0] if resposta.data else None}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/sessions/{session_id}/end")
+def encerrar_sessao(session_id: str):
+    try:
+        resposta = (
+            supabase.table("detection_sessions")
+            .update({"ended_at": datetime.now(timezone.utc).isoformat()})
+            .eq("id", session_id)
+            .execute()
+        )
+        return {"status": "sucesso", "session": resposta.data[0] if resposta.data else None}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/evidences")
+async def registrar_evidencia(
+    group_id: str = Form(...),
+    session_id: str = Form(...),
+    category: str = Form(...),
+    confidence: float = Form(...),
+    weight_kg: float | None = Form(None),
+    bbox: str | None = Form(None),
+    image: UploadFile = File(...),
 ):
-    timestamp_atual = datetime.now()
-    str_timestamp = timestamp_atual.strftime("%Y%m%d_%H%M%S")
+    categoria_norm = normalizar_categoria(category)
+    if categoria_norm is None:
+        raise HTTPException(status_code=400, detail=f"Categoria inválida: {category}")
+
+    bbox_lista: list[int] | None = None
+    if bbox:
+        try:
+            bbox_lista = [int(float(v)) for v in bbox.split(",")]
+            if len(bbox_lista) != 4:
+                bbox_lista = None
+        except ValueError:
+            bbox_lista = None
+
+    detected_at = datetime.now(timezone.utc)
+    str_timestamp = detected_at.strftime("%Y%m%d_%H%M%S_%f")
     suffix = Path(image.filename or "frame.jpg").suffix or ".jpg"
 
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
@@ -90,53 +168,60 @@ async def registrar_contagem(
         temp_path = Path(tmp.name)
 
     try:
-        results = model(str(temp_path), conf=CONFIDENCE_THRESHOLD, verbose=False)
+        grupo_info = (
+            supabase.table("groups")
+            .select("name")
+            .eq("id", group_id)
+            .single()
+            .execute()
+        )
+        slug = slugificar(grupo_info.data["name"]) if grupo_info.data else group_id
 
-        if not results or results[0].boxes is None or len(results[0].boxes) == 0:
-            return {"status": "sem_deteccao"}
+        nome_arquivo = f"{categoria_norm}_{str_timestamp}{suffix}"
+        storage_path = f"groups/{slug}/{session_id}/{nome_arquivo}"
+        caminho_local = EVIDENCIAS_DIR / nome_arquivo
+        shutil.copy2(temp_path, caminho_local)
 
-        best_box = max(results[0].boxes, key=lambda b: float(b.conf[0].item()))
-        cls_id = int(best_box.cls[0].item())
-        conf = float(best_box.conf[0].item())
-        label = model.names[cls_id]
-        
-        frame_anotado = results[0].plot()
-        nome_arquivo = f"{equipe_id}_{label}_{str_timestamp}{suffix}"
-        caminho_evidencia = EVIDENCIAS_DIR / nome_arquivo
-        
-        cv2.imwrite(str(caminho_evidencia), frame_anotado)
-
-        # 1. UPLOAD PARA O BUCKET 'evidencias' NO SUPABASE
-        url_publica = None
         try:
-            with open(caminho_evidencia, "rb") as f:
-                supabase.storage.from_("evidencias").upload(
-                    path=nome_arquivo, 
-                    file=f, 
-                    file_options={"content-type": "image/jpeg"}
+            with open(caminho_local, "rb") as f:
+                supabase.storage.from_(FRAMES_BUCKET).upload(
+                    path=storage_path,
+                    file=f,
+                    file_options={"content-type": "image/jpeg", "upsert": "true"},
                 )
-            # Pega o link público da imagem recém salva
-            url_publica = supabase.storage.from_("evidencias").get_public_url(nome_arquivo)
         except Exception as e:
-            print(f"Erro ao fazer upload para o Storage: {e}")
+            print(f"[Storage] Falha no upload: {e}")
 
-        # 2. SALVAR NO BANCO DE DADOS POSTGRESQL (Tabela contagens_alimentos)
+        dedup_hash = calcular_dedup_hash(categoria_norm, bbox_lista, detected_at)
+        dados_db = {
+            "session_id": session_id,
+            "group_id": group_id,
+            "category": categoria_norm,
+            "frame_url": storage_path,
+            "confidence": round(float(confidence), 4),
+            "detected_at": detected_at.isoformat(),
+            "dedup_hash": dedup_hash,
+        }
+        if weight_kg is not None:
+            dados_db["weight_kg"] = float(weight_kg)
+
         try:
-            dados_db = {
-                "equipe_id": equipe_id,
-                "categoria": str(label),
-                "confianca": round(conf, 4),
-                "evidencia_url": url_publica
-            }
-            supabase.table("contagens_alimentos").insert(dados_db).execute()
+            insert_resp = supabase.table("evidences").insert(dados_db).execute()
+            inserted = insert_resp.data[0] if insert_resp.data else None
+            print(f"[/evidences] inserido: {categoria_norm} {weight_kg}kg group={slug}")
         except Exception as e:
-            print(f"Erro ao salvar no banco de dados: {e}")
+            msg = str(e)
+            print(f"[/evidences] ERRO insert: {e!r}")
+            if "dedup_hash" in msg or "duplicate" in msg.lower():
+                return {"status": "duplicado", "dedup_hash": dedup_hash}
+            raise
 
         return {
             "status": "sucesso",
-            "equipe": equipe_nome,
-            "category": str(label),
-            "evidencia_url": url_publica
+            "evidence": inserted,
+            "category": categoria_norm,
+            "weight_kg": weight_kg,
+            "frame_url": storage_path,
         }
 
     finally:
