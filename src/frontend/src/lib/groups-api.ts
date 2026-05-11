@@ -2,6 +2,7 @@
 // Usa cookies httpOnly via credentials: "include" — mesmo padrão do auth-api.
 
 import { ApiError } from "@/lib/auth-api";
+import { authHeader } from "@/lib/auth-token";
 
 const BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 const API = `${BASE}/api/v1`;
@@ -68,6 +69,7 @@ async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
     headers: {
       "Content-Type": "application/json",
       "ngrok-skip-browser-warning": "1",
+      ...authHeader(),
       ...(init.headers || {}),
     },
   });

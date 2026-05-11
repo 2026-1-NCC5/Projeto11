@@ -6,6 +6,12 @@
 //   Dev:        VITE_API_BASE_URL=http://localhost:8000
 //   Vercel:     VITE_API_BASE_URL=https://seu-backend.ngrok.app  (na demo)
 
+import {
+  authHeader,
+  clearAccessToken,
+  setAccessToken,
+} from "@/lib/auth-token";
+
 const BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 const API = `${BASE}/api/v1`;
 
@@ -76,10 +82,11 @@ async function call<T>(
   const res = await fetch(`${API}${path}`, {
     ...rest,
     method: rest.method || "POST",
-    credentials: "include", // CRÍTICO: envia/recebe cookies httpOnly
+    credentials: "include", // cookies httpOnly (PC); mobile usa Bearer header
     headers: {
       "Content-Type": "application/json",
       "ngrok-skip-browser-warning": "1",
+      ...authHeader(),
       ...(headers || {}),
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -113,21 +120,40 @@ export class ApiError extends Error {
 
 // ── API ───────────────────────────────────────────────────────────────────
 
+async function withTokenPersist(
+  p: Promise<TokenResponse>
+): Promise<TokenResponse> {
+  const res = await p;
+  if (res.access_token) setAccessToken(res.access_token);
+  return res;
+}
+
 export const authApi = {
-  /** Cadastra um usuário e já loga (cookies setados no response). */
+  /** Cadastra um usuário e já loga (cookie + Bearer no sessionStorage). */
   signup: (input: SignupInput) =>
-    call<TokenResponse>("/auth/register", { body: input }),
+    withTokenPersist(call<TokenResponse>("/auth/register", { body: input })),
 
-  /** Login por e-mail e senha. Cookies httpOnly são setados pelo backend. */
+  /** Login por e-mail e senha. */
   login: (email: string, password: string) =>
-    call<TokenResponse>("/auth/login", { body: { email, password } }),
+    withTokenPersist(
+      call<TokenResponse>("/auth/login", {
+        body: { email, password },
+      })
+    ),
 
-  /** Rotaciona o refresh token. O cookie é injetado automaticamente. */
-  refresh: () => call<TokenResponse>("/auth/refresh", { body: {} }),
+  /** Rotaciona o refresh token e atualiza o access_token armazenado. */
+  refresh: () =>
+    withTokenPersist(call<TokenResponse>("/auth/refresh", { body: {} })),
 
-  /** Revoga o refresh token e limpa cookies. */
-  logout: () => call<MessageResponse>("/auth/logout", { body: {} }),
+  /** Revoga o refresh token, limpa cookies e o token local. */
+  logout: async () => {
+    try {
+      return await call<MessageResponse>("/auth/logout", { body: {} });
+    } finally {
+      clearAccessToken();
+    }
+  },
 
-  /** Retorna o usuário autenticado pelo cookie atual. */
+  /** Retorna o usuário autenticado (cookie OU Bearer). */
   me: () => call<AuthUser>("/auth/me", { method: "GET" }),
 };
