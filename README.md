@@ -21,19 +21,26 @@ A aplicação é capaz de identificar, classificar e contar pacotes de alimentos
 
 # Detalhes
 
-## 💻 Tecnologias 
-- **[Python](https://www.python.org/)**: Linguagem base para o processamento de imagens e backend.
-- **[OpenCV](https://opencv.org/)**: Captura de vídeo, processamento de frames e manipulação de imagens (Data Augmentation).
-- **[Ultralytics / YOLOv8](https://github.com/ultralytics/ultralytics)**: Framework de IA utilizado para o treinamento do modelo de detecção de objetos.
-- **[FastAPI](https://fastapi.tiangolo.com/)**: Construção da API RESTful para comunicação entre o detector local e o servidor.
-- **[Supabase / PostgreSQL](https://supabase.com/)**: Banco de dados relacional em nuvem para registro das equipes, contagens e armazenamento dos frames de evidência.
+## 💻 Tecnologias
+- **[Python 3.12](https://www.python.org/)**: Linguagem base do backend e do detector de Visão Computacional.
+- **[OpenCV](https://opencv.org/)**: Captura de vídeo, processamento de frames e calibração por homografia.
+- **[Ultralytics / YOLOv8](https://github.com/ultralytics/ultralytics)**: Framework de IA para o treinamento e inferência do modelo de detecção.
+- **[FastAPI](https://fastapi.tiangolo.com/)**: API REST do backend e gateway local do detector.
+- **[SQLAlchemy 2.0 async + Alembic](https://www.sqlalchemy.org/)**: ORM assíncrono e versionamento de migrations.
+- **[Next.js 14 / TanStack Start](https://tanstack.com/start)**: Frontend SPA em TypeScript + React 19.
+- **[TailwindCSS + shadcn/ui](https://tailwindcss.com/)**: Sistema de design do frontend.
+- **[Supabase / PostgreSQL](https://supabase.com/)**: Banco relacional gerenciado e Storage para os frames de evidência.
+- **[Docker Compose](https://docs.docker.com/compose/)**: Orquestração do backend em ambiente local.
+- **[Vercel](https://vercel.com/)**: Deploy contínuo do frontend (produção).
 
 ## ⚙ Funcionalidades
-- Detecção e classificação de alimentos em tempo real via câmera.
-- Sistema de *tracking* anti-duplicidade (contagem inteligente por cruzamento de linha no eixo Y).
-- Automação de pré-processamento de dados (Geração de imagens aumentadas, divisão de treino/validação e autolabeling).
-- API para recepção e validação de inferências.
-- Salvamento automático de *frames* anotados (evidências) por item contabilizado.
+- Cadastro de professores e alunos, formação de grupos (mín. 4 integrantes).
+- Detecção e classificação de alimentos (arroz, feijão, açúcar, macarrão, óleo, fubá) em tempo real via câmera.
+- *Tracking* anti-duplicidade por cruzamento de linha + `dedup_hash` (categoria + bbox + janela de 5s).
+- Cálculo automático de peso por categoria (arroz 1kg/5kg pela largura via homografia; demais com peso fixo).
+- Sessões de captura (`detection_sessions`) iniciadas pelo terminal antes da contagem.
+- Dashboard com ranking de grupos, totais por categoria e feed de evidências.
+- Salvamento automático de *frames* anotados no Supabase Storage por item contabilizado.
 
 ---
 
@@ -43,25 +50,28 @@ A aplicação é capaz de identificar, classificar e contar pacotes de alimentos
 📂 /Raiz
 ├── 📂 documentos
 │   ├── 📂 Entrega 1
-│   ├── 📂 Entrega 2
+│   └── 📂 Entrega 2
 ├── 📂 imgs
 ├── 📂 src
-│   ├── 📂 backend
-│   ├── 📂 frontend detector
-│   └── 📂 frontend
+│   ├── 📂 backend          # API FastAPI + SQLAlchemy + Alembic (Docker local)
+│   ├── 📂 cv_detector      # Detector YOLO + gateway local (sempre fora de Docker)
+│   └── 📂 frontend         # SPA Next.js/TanStack Start (Vercel)
+├── 📄 docker-compose.yml
+├── 📄 Makefile
 ├── 📄 .gitignore
-├── 📄 README.md
+└── 📄 README.md
 ```
 
 A pasta raiz contém os seguintes diretórios e arquivos principais:
 
-- **`README.md`**: Guia e explicação geral sobre o projeto, setup e tecnologias utilizadas.
-- **`documentos/`**: Concentra toda a documentação do projeto, dividida pelas entregas do semestre.
-- **`imgs/`**: Imagens gerais utilizadas na documentação e arquitetura do projeto.
-- **`src/`**: Diretório principal do código-fonte, subdividido em:
-  - **`backend/`**: Servidor da aplicação (API em FastAPI) e regras de negócio para salvar dados e imagens.
-  - **`frontend detector/`**: Scripts de IA local, incluindo captura da webcam (`detector.py`), scripts de treinamento do YOLO e pipeline de processamento do dataset (`generate_dataset.py`, `split_dataset.py`).
-  - **`frontend/`**: Interface para o usuário final (aplicativo/dashboard) consumir os dados consolidados.
+- **`README.md`**: Guia geral, tecnologias e setup macro do projeto.
+- **`documentos/`**: Documentação do projeto, dividida pelas entregas do semestre.
+- **`imgs/`**: Imagens utilizadas na documentação e nas referências de arquitetura.
+- **`docker-compose.yml` + `Makefile`**: Orquestração do backend em Docker para desenvolvimento e apresentação.
+- **`src/`**: Código-fonte, subdividido em:
+  - **`backend/`** ([README](src/backend/README.md)) — API FastAPI assíncrona, regras de negócio, autenticação JWT e migrations Alembic. Lê do Supabase e serve o frontend.
+  - **`cv_detector/`** ([README](src/cv_detector/README.md)) — Pipeline de IA local: dataset, treino YOLOv8, captura da webcam (`detector.py`) e gateway HTTP (`api_yolo.py`) que escreve direto no Supabase.
+  - **`frontend/`** ([README](src/frontend/README.md)) — Interface web (dashboard, ranking, gestão de grupos) consumindo a API do backend.
 
 ---
 
