@@ -372,3 +372,9 @@ Claude Design/
 
 # CV detector — frames de captura local (não versionar)
 src/cv_detector/evidencias/
+
+# Windows shell metadata
+desktop.ini
+
+# Documento de escopo (manter local, não versionar)
+Escopo_LE_Frontend_v2.1.docx
