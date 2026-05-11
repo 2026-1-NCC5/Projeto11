@@ -49,6 +49,7 @@ class Evidence(Base):
     category: Mapped[FoodCategory] = mapped_column(food_category_enum, nullable=False)
     frame_url: Mapped[str] = mapped_column(Text, nullable=False)
     confidence: Mapped[Decimal] = mapped_column(Numeric(4, 3), nullable=False)
+    weight_kg: Mapped[Decimal | None] = mapped_column(Numeric, nullable=True)
     detected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     dedup_hash: Mapped[str] = mapped_column(Text, unique=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(

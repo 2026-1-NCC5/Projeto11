@@ -21,7 +21,10 @@ async def list_groups_admin(session: AsyncSession) -> dict:
         .subquery()
     )
     kg_count = (
-        select(Evidence.group_id, func.count().label("kg"))
+        select(
+            Evidence.group_id,
+            func.sum(func.coalesce(Evidence.weight_kg, 1)).label("kg"),
+        )
         .group_by(Evidence.group_id)
         .subquery()
     )
@@ -46,7 +49,7 @@ async def list_groups_admin(session: AsyncSession) -> dict:
             "created_at": g.created_at,
             "created_by": g.created_by,
             "member_count": int(c),
-            "kg": int(kg),
+            "kg": float(kg),
         }
         for (g, c, kg) in rows
     ]
@@ -97,10 +100,11 @@ async def get_group_members(
     ]
 
 
-async def get_group_kg(session: AsyncSession, group_id: uuid.UUID) -> int:
-    return int(
+async def get_group_kg(session: AsyncSession, group_id: uuid.UUID) -> float:
+    return float(
         await session.scalar(
-            select(func.count()).select_from(Evidence).where(Evidence.group_id == group_id)
+            select(func.coalesce(func.sum(func.coalesce(Evidence.weight_kg, 1)), 0))
+            .where(Evidence.group_id == group_id)
         )
         or 0
     )

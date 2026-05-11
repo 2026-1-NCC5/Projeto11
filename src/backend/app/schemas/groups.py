@@ -16,7 +16,7 @@ class GroupSummaryOut(BaseModel):
     created_at: datetime
     created_by: uuid.UUID
     member_count: int
-    kg: int
+    kg: float
 
 
 class GroupListOut(BaseModel):
@@ -55,7 +55,7 @@ class GroupDetailOut(BaseModel):
     created_at: datetime
     created_by: uuid.UUID
     members: list[GroupMemberOut]
-    kg: int
+    kg: float
     recent_evidences: list[EvidenceBriefOut]
 
 

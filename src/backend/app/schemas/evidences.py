@@ -20,17 +20,17 @@ class EvidenceFeedOut(BaseModel):
 
 
 class CategoryCounts(BaseModel):
-    arroz: int = 0
-    feijao: int = 0
-    acucar: int = 0
-    macarrao: int = 0
-    oleo: int = 0
-    fuba: int = 0
+    arroz: float = 0
+    feijao: float = 0
+    acucar: float = 0
+    macarrao: float = 0
+    oleo: float = 0
+    fuba: float = 0
 
 
 class EvidenceAggregateOut(BaseModel):
     counts: CategoryCounts
-    total: int
+    total: float
 
 
 class GroupRankingItem(BaseModel):
@@ -39,4 +39,4 @@ class GroupRankingItem(BaseModel):
     id: uuid.UUID
     name: str
     created_at: datetime
-    kg: int
+    kg: float
