@@ -4,17 +4,12 @@ from pathlib import Path
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-_HERE = Path(__file__).resolve()
-BACKEND_DIR = _HERE.parents[2]
-try:
-    REPO_ROOT = _HERE.parents[4]
-except IndexError:
-    REPO_ROOT = BACKEND_DIR
+REPO_ROOT = Path(__file__).resolve().parents[4]
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=(REPO_ROOT / ".env", BACKEND_DIR / ".env"),
+        env_file=REPO_ROOT / ".env",
         env_file_encoding="utf-8",
         extra="ignore",
         case_sensitive=False,
