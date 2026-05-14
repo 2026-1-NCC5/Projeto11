@@ -28,7 +28,7 @@ def capturar_clique(evento, x, y, flags, param):
             # Atualiza a janela com os novos desenhos
             cv2.imshow("Calibrador de Camera", imagem_exibicao)
 
-def executar_calibracao(indice_camera=3):
+def executar_calibracao(indice_camera=0):
     """
     Acessa a câmera, tira uma foto e abre a interface de calibração por clique.
     """
@@ -50,17 +50,16 @@ def executar_calibracao(indice_camera=3):
     imagem_exibicao = frame.copy()
     
     # Instruções no terminal
-    print("\n" + "="*50)
-    print("INSTRUÇÕES DE CALIBRAÇÃO:")
+    print("\n" + "="*60)
+    print("INSTRUÇÕES DE CALIBRAÇÃO (Base 30cm x 40cm com fita branca):")
     print("1. A janela com a imagem da sua câmera vai abrir.")
-    print("2. Clique em 4 pontos que formem um retângulo/quadrado conhecido na sua mesa.")
-    print("   Ordem recomendada:")
-    print("     1º Canto Superior Esquerdo")
-    print("     2º Canto Superior Direito")
-    print("     3º Canto Inferior Direito")
-    print("     4º Canto Inferior Esquerdo")
-    print("3. Após o 4º clique, pressione a tecla 'ESPAÇO' ou 'ENTER' para finalizar.")
-    print("="*50 + "\n")
+    print("2. Clique nos 4 cantos da fita branca da base, NESTA ORDEM:")
+    print("     1º Canto Superior Esquerdo   (0cm,  0cm)")
+    print("     2º Canto Superior Direito    (30cm, 0cm)")
+    print("     3º Canto Inferior Direito    (30cm, 40cm)")
+    print("     4º Canto Inferior Esquerdo   (0cm,  40cm)")
+    print("3. Após o 4º clique, pressione 'ESPAÇO' ou 'ENTER' para finalizar.")
+    print("="*60 + "\n")
     
     # Cria a janela e vincula a função de clique do mouse
     cv2.imshow("Calibrador de Camera", imagem_exibicao)
@@ -84,9 +83,9 @@ print("             RESULTADO DA CALIBRAÇÃO")
 print("="*60)
 
 if pontos_finais and len(pontos_finais) == 4:
-    print("\nCopie a linha de código abaixo e cole no seu programa principal:")
-    print("\n# Substitua a variável correspondente no seu código principal:")
-    print(f'pontos_imagem_pixel = np.array({pontos_finais}, dtype="float32")\n')
+    print("\nCopie as 2 linhas abaixo e cole no detector.py (substituindo as existentes):\n")
+    print(f'pontos_imagem_pixel = np.array({pontos_finais}, dtype="float32")')
+    print('pontos_real_cm = np.array([[0, 0], [30, 0], [30, 40], [0, 40]], dtype="float32")\n')
 else:
     print("\n[ERRO] Calibração incompleta. Você não clicou em 4 pontos.")
     print("Execute o script novamente.")

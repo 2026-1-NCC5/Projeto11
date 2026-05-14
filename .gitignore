@@ -372,6 +372,8 @@ Claude Design/
 
 # CV detector — frames de captura local (não versionar)
 src/cv_detector/evidencias/
+src/cv_detector/venv/
+venv/
 
 # Windows shell metadata
 desktop.ini
